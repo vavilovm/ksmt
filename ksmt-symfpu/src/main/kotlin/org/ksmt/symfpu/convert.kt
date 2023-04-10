@@ -5,11 +5,35 @@ import org.ksmt.expr.KExpr
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpRoundingModeSort
 import org.ksmt.sort.KFpSort
+import org.ksmt.sort.KRealSort
 import org.ksmt.symfpu.UnpackedFp.Companion.iteOp
 import org.ksmt.symfpu.UnpackedFp.Companion.makeInf
 import org.ksmt.symfpu.UnpackedFp.Companion.makeNaN
 import org.ksmt.symfpu.UnpackedFp.Companion.makeZero
 import kotlin.math.max
+
+
+fun <T : KFpSort> fpToReal(unpackedFp: UnpackedFp<T>): KExpr<KRealSort> = with(unpackedFp.ctx) {
+    // Real value is unspecified for NaN and Inf
+
+//    var numerator = unpackedValue.significand
+    val numerator = conditionalNegate(unpackedFp.sign, unpackedFp.getSignificand().extendUnsigned(1))
+//    if (unpackedValue.sign) {
+//        numerator = -numerator
+//    }
+//
+//    var denominator = powerOfTwo(unpackedValue.significandSize - 1u)
+
+//
+//    if (unpackedValue.unbiasedExponent >= BigInteger.ZERO) {
+//        numerator = numerator.mul2k(unpackedValue.unbiasedExponent)
+//    } else {
+//        denominator = denominator.mul2k(-unpackedValue.unbiasedExponent)
+//    }
+//
+//    return normalizeAndCreateReal(numerator, denominator)
+    TODO("Not yet implemented")
+}
 
 fun <T : KFpSort> bvToFp(
     roundingMode: KExpr<KFpRoundingModeSort>,
