@@ -33,6 +33,7 @@ import org.ksmt.expr.KFpSubExpr
 import org.ksmt.expr.KFpToBvExpr
 import org.ksmt.expr.KFpToFpExpr
 import org.ksmt.expr.KFpToIEEEBvExpr
+import org.ksmt.expr.KFpToRealExpr
 import org.ksmt.expr.KFpValue
 import org.ksmt.expr.rewrite.simplify.simplifyFpToIEEEBvExpr
 import org.ksmt.expr.transformer.KNonRecursiveTransformer
@@ -192,6 +193,12 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
         transformExprAfterTransformed(expr, expr.roundingMode, expr.value) { roundingMode, value ->
             fpToBv(roundingMode, (value as UnpackedFp<*>), expr.bvSize, expr.isSigned)
         }
+
+    override fun <T : KFpSort> transform(expr: KFpToRealExpr<T>) =
+        transformExprAfterTransformed(expr, expr.value) { value ->
+            fpToReal((value as UnpackedFp<*>))
+        }
+
 
     override fun <T : KFpSort> transform(expr: KBvToFpExpr<T>) =
         transformExprAfterTransformed(expr, expr.roundingMode, expr.value) { roundingMode, value ->
