@@ -60,6 +60,24 @@ class FpToBvTransformerTest {
         }
     }
 
+    @Test
+    fun z3FailedTest() = with(KContext()) {
+        KZ3Solver(this)
+            .use { solver ->
+                val a by mkFp32Sort()
+
+                solver.assert(!mkFpIsNaNExpr(a) and !mkFpIsInfiniteExpr(a))
+                solver.assert(1.expr.toRealExpr() neq mkFpToRealExpr(a))
+
+
+                val status = solver.check(timeout = 10.seconds)
+                if (status == KSolverStatus.UNKNOWN) {
+                    println("STATUS == UNKNOWN")
+                    println(solver.reasonOfUnknown())
+                }
+                assertEquals(KSolverStatus.UNSAT, status)
+            }
+    }
 
     private fun <T : KSort> KContext.checkTransformer(
         transformer: FpToBvTransformer,
