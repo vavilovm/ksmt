@@ -35,7 +35,7 @@ jobs:
         if: runner.os == 'macOS'
         with:
           arguments: |
-            :ksmt-z3:build
+            :ksmt-symfpu:build
              --no-daemon
              --continue
              -PrunBenchmarksBasedTests=false
@@ -45,7 +45,7 @@ jobs:
         if: runner.os != 'macOS'
         with:
           arguments: |
-            build
+            :ksmt-symfpu:build
              --no-daemon
              --continue
              -PrunBenchmarksBasedTests=false

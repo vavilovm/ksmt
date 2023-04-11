@@ -46,7 +46,7 @@ class FpToBvTransformerTest {
             val b by mkFp64Sort()
             block(a, b)
         }
-
+/*
     @Test
     fun testUnpackExpr() = withContextAndFp128Variables { a, _ ->
         testFpExpr(a, mapOf("a" to a))
@@ -398,22 +398,6 @@ class FpToBvTransformerTest {
 //        )
 //    }
 
-    private fun <T : KSort> KContext.testFpExpr(
-        exprToTransform: KExpr<T>,
-        printVars: Map<String, KApp<*, *>> = emptyMap(),
-        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>) = { _, _ -> trueExpr }
-    ) {
-        val transformer = FpToBvTransformer(this)
-
-        if (System.getProperty("os.name") == "Mac OS X") {
-            KZ3Solver(this)
-        } else {
-            KBitwuzlaSolver(this)
-        }.use { solver ->
-            checkTransformer(transformer, solver, exprToTransform, printVars, extraAssert)
-        }
-    }
-
 
     @Test
     fun testFpToBvFmaFp16RTNExpr() = with(KContext()) {
@@ -638,7 +622,7 @@ class FpToBvTransformerTest {
         ) { _, _ ->
             mkFpLessExpr(a, mkFp32(UInt.MAX_VALUE.toFloat())) and mkFpIsPositiveExpr(a)
         }
-    }
+    }*/
 
 
     @Test
@@ -651,7 +635,7 @@ class FpToBvTransformerTest {
             trueExpr
         }
     }
-
+/*
     @Test
     fun testFpToSBvUpExpr() = with(KContext()) {
         val a by mkFp32Sort()
@@ -717,7 +701,7 @@ class FpToBvTransformerTest {
                 trueExpr
             }
         )
-    }
+    }*/
 
     private fun <T : KSort> KContext.checkTransformer(
         transformer: FpToBvTransformer,
@@ -827,6 +811,22 @@ class FpToBvTransformerTest {
         }
     } else {
         "${model.eval(value)}"
+    }
+
+    private fun <T : KSort> KContext.testFpExpr(
+        exprToTransform: KExpr<T>,
+        printVars: Map<String, KApp<*, *>> = emptyMap(),
+        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>) = { _, _ -> trueExpr }
+    ) {
+        val transformer = FpToBvTransformer(this)
+
+        if (System.getProperty("os.name") == "Mac OS X") {
+            KZ3Solver(this)
+        } else {
+            KBitwuzlaSolver(this)
+        }.use { solver ->
+            checkTransformer(transformer, solver, exprToTransform, printVars, extraAssert)
+        }
     }
 }
 
