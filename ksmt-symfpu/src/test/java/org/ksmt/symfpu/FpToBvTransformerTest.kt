@@ -640,6 +640,18 @@ class FpToBvTransformerTest {
         }
     }
 
+
+    @Test
+    fun testFpToRealExpr() = with(KContext()) {
+        val a by mkFp16Sort()
+        testFpExpr(
+            mkFpToRealExpr(a),
+            mapOf("a" to a),
+        ) { _, _ ->
+            trueExpr
+        }
+    }
+
     @Test
     fun testFpToSBvUpExpr() = with(KContext()) {
         val a by mkFp32Sort()
