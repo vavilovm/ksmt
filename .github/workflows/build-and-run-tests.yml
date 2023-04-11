@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - vavilovm/develop/real
 
   pull_request:
     types: [ opened, edited ]
