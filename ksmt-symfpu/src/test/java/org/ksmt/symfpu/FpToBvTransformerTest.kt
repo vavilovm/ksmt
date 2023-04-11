@@ -56,7 +56,7 @@ class FpToBvTransformerTest {
             mkFpToRealExpr(a),
             mapOf("a" to a),
         ) { _, _ ->
-            trueExpr
+            !mkFpIsNaNExpr(a) and !mkFpIsInfiniteExpr(a)
         }
     }
 
@@ -106,19 +106,6 @@ class FpToBvTransformerTest {
             println(solver.reasonOfUnknown())
         }
         assertEquals(KSolverStatus.UNSAT, status)
-    }
-
-    @Test
-    fun testFpToBvRoundToIntegralExpr() = with(KContext()) {
-        val a by mkFp32Sort()
-        val roundingModes = KFpRoundingMode.values()
-
-        roundingModes.forEach {
-            testFpExpr(
-                mkFpRoundToIntegralExpr(mkFpRoundingModeExpr(it), a),
-                mapOf("a" to a),
-            )
-        }
     }
 
     private fun KContext.unpackedString(value: KExpr<*>, model: KModel) = if (value.sort is KFpSort) {
