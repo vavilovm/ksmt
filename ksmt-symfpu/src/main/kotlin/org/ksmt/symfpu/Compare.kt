@@ -18,7 +18,6 @@ internal fun <Fp : KFpSort> KContext.less(
             (left.isZero and !right.isZero and !right.isNegative) or (!left.isZero and left.isNegative and right.isZero)
 
     val packedExists = left.packedBv != null && right.packedBv != null
-    println("packedExists: $packedExists")
 
     return lessHelper(
             left, right, infCase, zeroCase, packedExists, positiveCaseSignificandComparison = mkBvUnsignedLessExpr(
@@ -41,7 +40,6 @@ internal fun <Fp : KFpSort> KContext.lessOrEqual(
             (left.isZero and right.isNegative.not()) or (left.isNegative and right.isZero)
 
     val packedExists = left.packedBv != null && right.packedBv != null
-    println("packedExists: $packedExists")
 
     return lessHelper(
             left,

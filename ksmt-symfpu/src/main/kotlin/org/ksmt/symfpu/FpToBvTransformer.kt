@@ -1,6 +1,7 @@
 package org.ksmt.symfpu
 
 import org.ksmt.KContext
+import org.ksmt.decl.KConstDecl
 import org.ksmt.expr.KApp
 import org.ksmt.expr.KBvToFpExpr
 import org.ksmt.expr.KConst
@@ -36,23 +37,72 @@ import org.ksmt.expr.KFpToIEEEBvExpr
 import org.ksmt.expr.KFpValue
 import org.ksmt.expr.rewrite.simplify.simplifyFpToIEEEBvExpr
 import org.ksmt.expr.transformer.KNonRecursiveTransformer
+import org.ksmt.solver.KModel
+import org.ksmt.solver.KSolver
+import org.ksmt.solver.KSolverConfiguration
+import org.ksmt.solver.KSolverStatus
 import org.ksmt.sort.KBoolSort
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.utils.asExpr
 import org.ksmt.utils.cast
+import kotlin.time.Duration
+
+
+class FpToBvSolverWrapper<Config : KSolverConfiguration>(val solver: KSolver<Config>,
+                                                         val ctx: KContext) : KSolver<Config> {
+    private val transformer = FpToBvTransformer(ctx)
+
+//    fun <T : KSort> apply(expr: KExpr<T>): KExpr<T> = with(ctx) {
+//        return FpToBvTransformer(ctx).applyAndGetExpr(expr)
+//    }
+
+    override fun configure(configurator: Config.() -> Unit) = solver.configure(configurator)
+
+    override fun assert(expr: KExpr<KBoolSort>) = solver.assert(transformer.applyAndGetExpr(expr))
+
+    override fun assertAndTrack(expr: KExpr<KBoolSort>, trackVar: KConstDecl<KBoolSort>) =
+        solver.assertAndTrack(transformer.applyAndGetExpr(expr), trackVar)
+
+    override fun push() = solver.push()
+
+    override fun pop(n: UInt) = solver.pop(n)
+
+
+    override fun check(timeout: Duration): KSolverStatus = solver.check(timeout)
+
+    override fun checkWithAssumptions(assumptions: List<KExpr<KBoolSort>>, timeout: Duration): KSolverStatus =
+        solver.checkWithAssumptions(assumptions.map(transformer::applyAndGetExpr), timeout)
+
+    override fun model(): KModel = solver.model()
+
+    override fun unsatCore(): List<KExpr<KBoolSort>> = solver.unsatCore()
+
+    override fun reasonOfUnknown(): String = solver.reasonOfUnknown()
+
+    override fun interrupt() = solver.interrupt()
+
+    override fun close() = solver.close()
+}
 
 class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
     private val mapFpToBvImpl = mutableMapOf<KExpr<KFpSort>, KExpr<KBvSort>>()
     val mapFpToBv: Map<KExpr<KFpSort>, KExpr<KBvSort>> get() = mapFpToBvImpl
     // use this function instead of apply as it may return UnpackedFp wrapper
 
-//    fun <T : KSort> applyAndGetBvExpr(expr: KExpr<T>): KExpr<KBvSort> {
-//        val transformed = apply(expr)
-//        val unpacked = (transformed as? UnpackedFp)
-//        return unpacked ?: transformed.cast()
-//    }
+    fun <T : KSort> applyAndGetExpr(expr: KExpr<T>): KExpr<T> {
+        val applied = apply(expr)
+        // it might have UnpackedFp inside, so
+        // transform them to bvs
+        return AdapterTermsRewriter().apply(applied)
+    }
+
+    inner class AdapterTermsRewriter : KNonRecursiveTransformer(ctx) {
+        fun <T : KFpSort> transform(expr: UnpackedFp<T>): KExpr<KBvSort> = with(ctx) {
+            return packToBv(expr)
+        }
+    }
 
     override fun <Fp : KFpSort> transform(expr: KFpEqualExpr<Fp>): KExpr<KBoolSort> = with(ctx) {
         transformHelper(expr, ::equal)
@@ -158,7 +208,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
         return if (expr.sort is KFpSort) {
             val asFp: KConst<KFpSort> = expr.cast()
             val bv = mapFpToBvImpl.getOrPut(asFp) {
-                mkConst(asFp.decl.name + "!tobv!", mkBvSort(asFp.sort.exponentBits + asFp.sort.significandBits))
+                mkFreshConst(asFp.decl.name + "!tobv!", mkBvSort(asFp.sort.exponentBits + asFp.sort.significandBits))
             }
             unpack(asFp.sort, bv).cast()
 

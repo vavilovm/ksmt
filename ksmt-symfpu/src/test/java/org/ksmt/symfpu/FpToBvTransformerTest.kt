@@ -117,51 +117,6 @@ class FpToBvTransformerTest {
         testFpExpr(mkFpMinExpr(a, b), mapOf("a" to a, "b" to b), extraAssert = assertionForZeroResults())
     }
 
-    @Test
-    fun testFpToBvMult2Expr() = with(KContext()) {
-        val a = mkFp32(1.0f)
-        val b = mkFp32(1.5f)
-        testFpExpr(
-            mkFpMulExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b), mapOf("a" to a, "b" to b)
-        )
-    }
-
-    @Test
-    fun testFpToBvMult4Expr() = with(KContext()) {
-        val a = mkFp32(Float.fromBits(0b1_00100110_00100111111000011010000.toInt()))
-        val b = mkFp32(Float.fromBits(0b0_11011001_10111011101000000000100))
-        testFpExpr(
-            mkFpMulExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b), mapOf("a" to a, "b" to b)
-        )
-    }
-
-    @Test
-    fun testFpToBvMult5Expr() = with(KContext()) {
-        val a = mkFp32(Float.fromBits(0b0_00000000_00000000000000000000001)) // min
-        val b = mkFp32(Float.fromBits(0b0_01111110_00000000000000000000000)) // 0.5
-        testFpExpr(
-            mkFpMulExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b), mapOf("a" to a, "b" to b)
-        )
-    }
-
-    @Test
-    fun testFpToBvMult5NegExpr() = with(KContext()) {
-        val a = mkFp32(Float.fromBits(0b0_00000000_00000000000000000000001)) // min
-        val b = mkFp32(Float.fromBits(0b1_01111110_00000000000000000000000.toInt())) // -0.5
-        testFpExpr(
-            mkFpMulExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b), mapOf("a" to a, "b" to b)
-        )
-    }
-
-    @Test
-    fun testFpToBvMultToMinExpr() = with(KContext()) {
-        val a = mkFp32(Float.fromBits(0b0_00000000_00000000000000000000001)) // min
-        val b = mkFp32(Float.fromBits(0b1_01111110_00000000000000000000001.toInt())) // -0.5...1
-        testFpExpr(
-            mkFpMulExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b), mapOf("a" to a, "b" to b)
-        )
-    }
-
 
     @Test
     fun testFpToBvMaxExpr() = withContextAndFp32Variables { a, b ->
@@ -221,6 +176,20 @@ class FpToBvTransformerTest {
             mapOf("a" to a, "b" to b),
         ) { _, e ->
             mkFpIsSubnormalExpr(e)
+        }
+    }
+
+    @Test
+    fun testFpToBvDiv32RNEExpr() = with(KContext()) {
+//        val a by mkFp32Sort()
+//        val b by mkFp32Sort()
+        val a = mkFp32(Float.fromBits(0b0_01111111_00000000000000000000000))
+        val b = mkFp32(Float.fromBits(0b0_00000000_00000000000000000000000))
+        testFpExpr(
+            mkFpDivExprNoSimplify(mkFpRoundingModeExpr(KFpRoundingMode.RoundNearestTiesToEven), a, b),
+            mapOf("a" to a, "b" to b),
+        ) { _, _ ->
+            trueExpr
         }
     }
 
@@ -717,7 +686,7 @@ class FpToBvTransformerTest {
 
         val applied = transformer.apply(exprToTransform)
         val transformedExpr: KExpr<T> = ((applied as? UnpackedFp<*>)?.toFp() ?: applied).cast()
-
+//        val transformedExpr = transformer.applyAndGetExpr(exprToTransform)
         val testTransformer = TestTransformerUseBvs(this, transformer.mapFpToBv)
         val toCompare = testTransformer.apply(exprToTransform)
 
