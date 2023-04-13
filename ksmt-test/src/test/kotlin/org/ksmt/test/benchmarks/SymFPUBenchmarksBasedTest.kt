@@ -56,7 +56,9 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         @JvmStatic
         fun symfpuTestData(): List<BenchmarkTestArguments> {
             println("Running benchmarks for SymFPU")
-            return testData.skipUnsupportedTheories().filter { it.name.contains("QF_FP") }
+            return testData.skipUnsupportedTheories().filter {
+                it.name.contains("QF")
+            }.filter { it.name.contains("FP") }
                 .ensureNotEmpty().apply {
                     println("Running $size benchmarks")
                 }
