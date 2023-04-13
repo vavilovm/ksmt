@@ -49,16 +49,15 @@ import org.ksmt.utils.asExpr
 import org.ksmt.utils.cast
 import kotlin.time.Duration
 
+open class SymfpuSolver<Config : KSolverConfiguration>(val solver: KSolver<Config>,
+                                                       val ctx: KContext) : KSolver<Config> {
 
-class FpToBvSolverWrapper<Config : KSolverConfiguration>(val solver: KSolver<Config>,
-                                                         val ctx: KContext) : KSolver<Config> {
+
     private val transformer = FpToBvTransformer(ctx)
 
-//    fun <T : KSort> apply(expr: KExpr<T>): KExpr<T> = with(ctx) {
-//        return FpToBvTransformer(ctx).applyAndGetExpr(expr)
-//    }
-
-    override fun configure(configurator: Config.() -> Unit) = solver.configure(configurator)
+    override fun configure(configurator: Config.() -> Unit) {
+        solver.configure(configurator)
+    }
 
     override fun assert(expr: KExpr<KBoolSort>) = solver.assert(transformer.applyAndGetExpr(expr))
 

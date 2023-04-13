@@ -213,52 +213,6 @@ abstract class BenchmarksBasedTest {
         }
     }
 
-    fun <C : KSolverConfiguration> testSolverWrapper(
-        name: String,
-        samplePath: Path,
-        solverProvider: (KContext) -> KSolver<C>
-    ) = handleIgnoredTests("testSolver[$name]") {
-        ignoreNoTestDataStub(name)
-        val ctx = KContext()
-        testWorkers.withWorker(ctx) { worker ->
-            worker.skipBadTestCases {
-                val assertions = worker.parseFile(samplePath)
-                val solver = worker.createSolver(TEST_WORKER_CHECK_SAT_TIMEOUT)
-                assertions.forEach {
-                    worker.assert(solver, it)
-                }
-
-                var expectedStatus = worker.check(solver)
-
-                // Fix known Z3 satisfiability issues
-                if (expectedStatus == KSolverStatus.UNSAT && name in KnownZ3Issues.z3FpFmaFalseUnsatSamples) {
-                    expectedStatus = KSolverStatus.SAT
-                }
-                if (expectedStatus == KSolverStatus.SAT && name in KnownZ3Issues.z3FpFmaFalseSatSamples) {
-                    expectedStatus = KSolverStatus.UNSAT
-                }
-
-                if (expectedStatus == KSolverStatus.UNKNOWN) {
-                    ignoreTest { "Expected status is unknown" }
-                }
-
-                val ksmtAssertions = worker.convertAssertions(assertions)
-
-                val actualStatus = solverProvider(ctx).use { ksmtSolver ->
-                    ksmtAssertions.forEach { ksmtSolver.assert(it) }
-
-                    // use greater timeout to reduce false-positive unknowns
-                    val status = ksmtSolver.check(SOLVER_CHECK_SAT_TIMEOUT)
-                    if (status == KSolverStatus.UNKNOWN) {
-                        ignoreTest { "Actual status is unknown: ${ksmtSolver.reasonOfUnknown()}" }
-                    }
-
-                    status
-                }
-                assertEquals(expectedStatus, actualStatus, "solver check-sat mismatch")
-            }
-        }
-    }
 
     internal fun KsmtWorkerPool<TestProtocolModel>.withWorker(
         ctx: KContext,
