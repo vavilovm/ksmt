@@ -5,6 +5,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.ksmt.KContext
+import org.ksmt.solver.bitwuzla.KBitwuzlaSolver
+import org.ksmt.solver.bitwuzla.KBitwuzlaSolverConfiguration
+import org.ksmt.solver.bitwuzla.KBitwuzlaSolverUniversalConfiguration
 import org.ksmt.solver.yices.KYicesSolver
 import org.ksmt.solver.yices.KYicesSolverConfiguration
 import org.ksmt.solver.yices.KYicesSolverUniversalConfiguration
@@ -16,6 +19,7 @@ import java.nio.file.Path
 
 class SymfpuZ3Solver(ctx: KContext) : SymfpuSolver<KZ3SolverConfiguration>(KZ3Solver(ctx), ctx)
 class SymfpuYicesSolver(ctx: KContext) : SymfpuSolver<KYicesSolverConfiguration>(KYicesSolver(ctx), ctx)
+class SymfpuBitwuzlaSolver(ctx: KContext) : SymfpuSolver<KBitwuzlaSolverConfiguration>(KBitwuzlaSolver(ctx), ctx)
 
 class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
@@ -45,6 +49,21 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
             createSolver(ctx, SymfpuYicesSolver::class)
         }
     }
+
+    @Execution(ExecutionMode.CONCURRENT)
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("symfpuTestData")
+    fun testSolverBitwuzlaTransformed(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+        solverManager.run {
+            registerSolver(SymfpuBitwuzlaSolver::class, KBitwuzlaSolverUniversalConfiguration::class)
+            createSolver(ctx, SymfpuBitwuzlaSolver::class)
+        }
+    }
+
+    @Execution(ExecutionMode.CONCURRENT)
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("symfpuTestData")
+    fun testSolverBitwuzla(name: String, samplePath: Path) = testSolver(name, samplePath, KBitwuzlaSolver::class)
 
 
 //./gradlew :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest.testConverter"
