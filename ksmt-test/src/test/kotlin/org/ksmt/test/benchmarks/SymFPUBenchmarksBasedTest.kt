@@ -57,17 +57,17 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         fun symfpuTestData(): List<BenchmarkTestArguments> {
             println("Running benchmarks for SymFPU")
             return testData.skipUnsupportedTheories().filter {
-                it.name.contains("QF")
-            }.filter { it.name.contains("FP") }
-                .ensureNotEmpty().apply {
-                    println("Running $size benchmarks")
-                }
+                it.name.contains("QF_FP")
+            }.ensureNotEmpty().apply {
+                println("Running $size benchmarks")
+            }
         }
 
 
         private fun List<BenchmarkTestArguments>.skipUnsupportedTheories() = filterNot {
             "LIA" in it.name || "LRA" in it.name || "LIRA" in it.name
         }.filterNot { "NIA" in it.name || "NRA" in it.name || "NIRA" in it.name }
+            .filterNot { "ABVFP" in it.name }
 
     }
 }
