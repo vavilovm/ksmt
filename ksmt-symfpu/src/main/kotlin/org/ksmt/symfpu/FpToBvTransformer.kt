@@ -35,7 +35,6 @@ import org.ksmt.expr.KFpToBvExpr
 import org.ksmt.expr.KFpToFpExpr
 import org.ksmt.expr.KFpToIEEEBvExpr
 import org.ksmt.expr.KFpValue
-import org.ksmt.expr.rewrite.simplify.simplifyFpToIEEEBvExpr
 import org.ksmt.expr.transformer.KNonRecursiveTransformer
 import org.ksmt.solver.KModel
 import org.ksmt.solver.KSolver
@@ -219,8 +218,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
             expr.sort,
             expr.signBit.expr,
             expr.biasedExponent.asExpr(mkBvSort(expr.sort.exponentBits)),
-            expr.significand.asExpr(mkBvSort(expr.sort.significandBits - 1u)),
-            simplifyFpToIEEEBvExpr(expr)
+            expr.significand.asExpr(mkBvSort(expr.sort.significandBits - 1u))
         )
     }
 

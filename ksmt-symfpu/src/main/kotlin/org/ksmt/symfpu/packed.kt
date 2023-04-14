@@ -20,15 +20,14 @@ fun <Fp : KFpSort> KContext.unpack(sort: Fp, packedFloat: KExpr<KBvSort>): Unpac
     val packedSignificand = mkBvExtractExpr(pWidth - exWidth - 2, 0, packedFloat)
     val packedExponent = mkBvExtractExpr(pWidth - 2, pWidth - exWidth - 1, packedFloat)
     val sign = bvToBool(mkBvExtractExpr(pWidth - 1, pWidth - 1, packedFloat))
-    return unpack(sort, sign, packedExponent, packedSignificand, packedFloat)
+    return unpack(sort, sign, packedExponent, packedSignificand)
 }
 
 fun <Fp : KFpSort> KContext.unpack(
     sort: Fp,
     sign: KExpr<KBoolSort>,
     packedExponent: KExpr<KBvSort>,
-    packedSignificand: KExpr<KBvSort>,
-    packedFloat: KExpr<KBvSort> = mkBvConcatExpr(boolToBv(sign), packedExponent, packedSignificand)
+    packedSignificand: KExpr<KBvSort>
 ): UnpackedFp<Fp> {
     val unpackedExWidth = exponentWidth(sort)
 
@@ -40,8 +39,8 @@ fun <Fp : KFpSort> KContext.unpack(
     val significandWithLeadingZero = mkBvConcatExpr(bvZero(), packedSignificand)
     val significandWithLeadingOne = mkBvConcatExpr(bvOne(), packedSignificand)
 
-    val ufNormal = UnpackedFp(this, sort, sign, exponent, significandWithLeadingOne, packedFloat)
-    val ufSubnormalBase = UnpackedFp(this, sort, sign, minNormalExponent(sort), significandWithLeadingZero, packedFloat)
+    val ufNormal = UnpackedFp(this, sort, sign, exponent, significandWithLeadingOne)
+    val ufSubnormalBase = UnpackedFp(this, sort, sign, minNormalExponent(sort), significandWithLeadingZero)
 
     // Analyse
     val zeroExponent = isAllZeros(packedExponent)
@@ -67,9 +66,6 @@ fun <Fp : KFpSort> KContext.unpack(
 }
 
 fun <Fp : KFpSort> KContext.packToBv(uf: UnpackedFp<Fp>): KExpr<KBvSort> {
-    if (uf.packedBv != null) {
-        return uf.packedBv
-    }
 
     // Sign
     val packedSign = uf.signBv()

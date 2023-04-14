@@ -206,11 +206,11 @@ fun KContext.conditionalDecrement(cond: KExpr<KBoolSort>, bv: KExpr<KBvSort>): K
 }
 
 fun <Fp : KFpSort> KContext.makeMin(sort: Fp, sign: KExpr<KBoolSort>) = UnpackedFp(
-  this, sort, sign, minSubnormalExponent(sort), leadingOne(sort.significandBits.toInt())
+    this, sort, sign, minSubnormalExponent(sort), leadingOne(sort.significandBits.toInt())
 )
 
 fun <Fp : KFpSort> KContext.makeMax(sort: Fp, sign: KExpr<KBoolSort>) = UnpackedFp(
-  this, sort, sign, maxNormalExponent(sort), ones(sort.significandBits)
+    this, sort, sign, maxNormalExponent(sort), ones(sort.significandBits)
 )
 
 fun KContext.expandingSubtractUnsigned(op1: KExpr<KBvSort>, op2: KExpr<KBvSort>): KExpr<KBvSort> {
