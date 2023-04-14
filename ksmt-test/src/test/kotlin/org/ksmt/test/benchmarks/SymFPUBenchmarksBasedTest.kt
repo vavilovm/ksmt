@@ -26,7 +26,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest(name = "{0}")
     @MethodSource("symfpuTestData")
-    fun testSolverZ3Transformed(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+    fun testSolverZ3TransformedNoBvOpt(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuZ3Solver::class, KZ3SolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuZ3Solver::class)
@@ -43,7 +43,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest(name = "{0}")
     @MethodSource("symfpuTestData")
-    fun testSolverYices(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+    fun testSolverYicesNoBvOpt(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuYicesSolver::class)
@@ -53,7 +53,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest(name = "{0}")
     @MethodSource("symfpuTestData")
-    fun testSolverBitwuzlaTransformed(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+    fun testSolverBitwuzlaTransformedNoBvOpt(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuBitwuzlaSolver::class, KBitwuzlaSolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuBitwuzlaSolver::class)
