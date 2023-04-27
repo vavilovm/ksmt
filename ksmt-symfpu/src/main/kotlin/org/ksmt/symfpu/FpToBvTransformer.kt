@@ -361,7 +361,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
 
                 mapFpToUnpackedFpImpl.getOrPut(asFp.decl) {
                     unpack(asFp.sort,
-                        mkConst(asFp.decl.name + "!tobv!", mkBvSort(
+                        mkFreshConst(asFp.decl.name + "!tobv!", mkBvSort(
                             asFp.sort.exponentBits + asFp.sort.significandBits)).also {
                             arraysTransform.mapFpToBvDeclImpl[asFp.decl] = (it as KConst<KBvSort>)
                         }

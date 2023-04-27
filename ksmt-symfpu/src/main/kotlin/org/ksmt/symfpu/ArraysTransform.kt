@@ -59,7 +59,7 @@ class ArraysTransform(val ctx: KContext) {
             it is KConstDecl<*> -> {
                 val newSort = transformSortRemoveFP(sort)
                 mapFpToBvDeclImpl.getOrPut(it) {
-                    mkConst(it.name + "!tobv!", newSort).cast()
+                    mkFreshConst(it.name + "!tobv!", newSort).cast()
                 }.decl
             }
 
