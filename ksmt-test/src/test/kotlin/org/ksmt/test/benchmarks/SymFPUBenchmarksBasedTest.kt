@@ -1,6 +1,5 @@
 package org.ksmt.test.benchmarks
 
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
@@ -33,17 +32,6 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @MethodSource("symfpuTestData")
     fun testModelZ3Transformed(name: String, samplePath: Path) = testModelConversion(name, samplePath) { ctx ->
-        solverManager.run {
-            registerSolver(SymfpuZ3Solver::class, KZ3SolverUniversalConfiguration::class)
-            createSolver(ctx, SymfpuZ3Solver::class)
-        }
-    }
-
-    val name = "QF_FP_abs-has-solution-10870.smt2"
-    val path = Path.of("/Users/Mark.Vavilov/ksmt/ksmt-test/build/resources/test/testData").resolve(name)
-
-    @Test
-    fun testModelZ3TransformedFixed() = testModelConversion(name, path) { ctx ->
         solverManager.run {
             registerSolver(SymfpuZ3Solver::class, KZ3SolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuZ3Solver::class)
