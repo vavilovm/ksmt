@@ -92,12 +92,11 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         @JvmStatic
         fun symfpuTestData(): List<BenchmarkTestArguments> {
             println("Running benchmarks for SymFPU")
-            return (testData.filter {
-                "FP" in it.name  //&& "ABV" in it.name ///&& "QF_BVFP" !in it.name //&& "QF" in it.name
-            })
-//                .ensureNotEmpty().apply {
-//                println("Running $size benchmarks")
-//            }
+            return testData.filter {
+                "FP" in it.name
+            }.ensureNotEmpty().apply {
+                    println("Running $size benchmarks")
+                }
         }
     }
 }

@@ -115,7 +115,7 @@ abstract class BenchmarksBasedTest {
 
                     val status = testSolver.checkAsync(SOLVER_CHECK_SAT_TIMEOUT)
                     if (status != KSolverStatus.SAT) {
-                        ignoreTest { "No model to check $status" }
+                        ignoreTest { "No model to check" }
                     }
 
                     testSolver.modelAsync()
@@ -379,12 +379,12 @@ abstract class BenchmarksBasedTest {
         @JvmStatic
         fun initWorkerPools() {
             solverManager = KSolverRunnerManager(
-                workerPoolSize = 8,
+                workerPoolSize = 4,
                 hardTimeout = SOLVER_SINGLE_OPERATION_TIMEOUT,
                 workerProcessIdleTimeout = 10.minutes
             )
             testWorkers = KsmtWorkerPool(
-                maxWorkerPoolSize = 8,
+                maxWorkerPoolSize = 4,
                 workerProcessIdleTimeout = 10.minutes,
                 workerFactory = object : KsmtWorkerFactory<TestProtocolModel> {
                     override val childProcessEntrypoint = TestWorkerProcess::class
