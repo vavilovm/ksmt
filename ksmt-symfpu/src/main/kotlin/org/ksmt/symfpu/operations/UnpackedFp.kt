@@ -1,4 +1,4 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.operations
 
 import org.ksmt.KContext
 import org.ksmt.cache.hash
@@ -9,9 +9,10 @@ import org.ksmt.expr.transformer.KTransformerBase
 import org.ksmt.sort.KBoolSort
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpSort
-import org.ksmt.symfpu.UnpackedFp.PackedFp.Companion.makeBvInf
-import org.ksmt.symfpu.UnpackedFp.PackedFp.Companion.makeBvNaN
-import org.ksmt.symfpu.UnpackedFp.PackedFp.Companion.makeBvZero
+import org.ksmt.symfpu.operations.UnpackedFp.PackedFp.Companion.makeBvInf
+import org.ksmt.symfpu.operations.UnpackedFp.PackedFp.Companion.makeBvNaN
+import org.ksmt.symfpu.operations.UnpackedFp.PackedFp.Companion.makeBvZero
+import org.ksmt.symfpu.solver.FpToBvTransformer
 import org.ksmt.utils.FpUtils.fpInfExponentBiased
 import org.ksmt.utils.FpUtils.fpInfSignificand
 import org.ksmt.utils.FpUtils.fpNaNExponentBiased

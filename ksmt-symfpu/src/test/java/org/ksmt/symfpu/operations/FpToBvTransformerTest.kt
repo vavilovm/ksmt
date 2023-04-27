@@ -1,4 +1,4 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.operations
 
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
@@ -28,6 +28,7 @@ import org.ksmt.sort.KFp32Sort
 import org.ksmt.sort.KFp64Sort
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
+import org.ksmt.symfpu.solver.FpToBvTransformer
 import org.ksmt.utils.cast
 import org.ksmt.utils.getValue
 import org.ksmt.utils.uncheckedCast

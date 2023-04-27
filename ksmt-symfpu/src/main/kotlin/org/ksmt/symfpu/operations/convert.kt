@@ -1,14 +1,14 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.operations
 
 import org.ksmt.KContext
 import org.ksmt.expr.KExpr
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpRoundingModeSort
 import org.ksmt.sort.KFpSort
-import org.ksmt.symfpu.UnpackedFp.Companion.iteOp
-import org.ksmt.symfpu.UnpackedFp.Companion.makeInf
-import org.ksmt.symfpu.UnpackedFp.Companion.makeNaN
-import org.ksmt.symfpu.UnpackedFp.Companion.makeZero
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.iteOp
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.makeInf
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.makeNaN
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.makeZero
 import kotlin.math.max
 
 fun <T : KFpSort> bvToFp(

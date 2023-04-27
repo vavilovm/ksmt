@@ -15,7 +15,7 @@ import org.ksmt.solver.yices.KYicesSolverUniversalConfiguration
 import org.ksmt.solver.z3.KZ3Solver
 import org.ksmt.solver.z3.KZ3SolverConfiguration
 import org.ksmt.solver.z3.KZ3SolverUniversalConfiguration
-import org.ksmt.symfpu.SymfpuSolver
+import org.ksmt.symfpu.solver.SymfpuSolver
 import java.nio.file.Path
 
 class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
@@ -33,7 +33,6 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @MethodSource("symfpuTestData")
     fun testModelZ3Transformed(name: String, samplePath: Path) = testModelConversion(name, samplePath) { ctx ->
-        println("name $name samplePath $samplePath")
         solverManager.run {
             registerSolver(SymfpuZ3Solver::class, KZ3SolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuZ3Solver::class)
@@ -94,7 +93,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         fun symfpuTestData(): List<BenchmarkTestArguments> {
             println("Running benchmarks for SymFPU")
             return (testData.filter {
-                "FP" in it.name  && "ABV" !in it.name && "QF_BVFP" !in it.name //&& "QF" in it.name
+                "FP" in it.name  //&& "ABV" in it.name ///&& "QF_BVFP" !in it.name //&& "QF" in it.name
             })
 //                .ensureNotEmpty().apply {
 //                println("Running $size benchmarks")

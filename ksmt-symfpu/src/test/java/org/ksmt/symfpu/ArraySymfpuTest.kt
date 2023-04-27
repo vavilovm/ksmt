@@ -8,6 +8,9 @@ import org.ksmt.solver.KSolverStatus
 import org.ksmt.solver.z3.KZ3SMTLibParser
 import org.ksmt.solver.z3.KZ3Solver
 import org.ksmt.solver.z3.KZ3SolverConfiguration
+import org.ksmt.symfpu.operations.createContext
+import org.ksmt.symfpu.operations.defaultRounding
+import org.ksmt.symfpu.solver.SymfpuSolver
 import org.ksmt.utils.getValue
 import org.ksmt.utils.mkConst
 import java.nio.file.Files
@@ -101,13 +104,19 @@ class ArraySymfpuTest {
 
         val const = mkArrayConst(sort, value)
         val expr = const.select(index) neq value
-        SymfpuZ3Solver(this).use { solver ->
-            solver.assert(expr)
+        KZ3Solver(this).use { z3 ->
+            SymfpuZ3Solver(this).use { solver ->
+                solver.assert(expr)
+                z3.assert(expr)
 
-            println("checking satisfiability...")
-            val status = solver.check(timeout = 200.seconds)
-            println(status)
-            assertEquals(KSolverStatus.UNSAT, status)
+                println("checking satisfiability...")
+                val status = solver.check(timeout = 200.seconds)
+                z3.check(timeout = 200.seconds)
+                println(status)
+                assertEquals(KSolverStatus.UNSAT, status)
+                assertEquals(z3.unsatCore(), solver.unsatCore())
+                println(z3.unsatCore())
+            }
         }
     }
 
@@ -249,7 +258,7 @@ class ArraySymfpuTest {
 
     @Test
     fun testFromBench() = with(createContext()) {
-        val name = "QF_FP_abs-has-solution-10870.smt2"
+        val name = "QF_ABVFP_interpolation2_true-unreach-call.c_37.smt2"
         val path = Path.of("/Users/Mark.Vavilov/ksmt/ksmt-test/build/resources/test/testData").resolve(name)
         val content = Files.readString(path)
         val assertionsAll = KZ3SMTLibParser(this).parse(content)

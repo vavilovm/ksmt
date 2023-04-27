@@ -1,5 +1,5 @@
 @file:Suppress("LongParameterList")
-package org.ksmt.symfpu
+package org.ksmt.symfpu.operations
 
 import org.ksmt.KContext
 import org.ksmt.expr.KExpr
@@ -9,10 +9,10 @@ import org.ksmt.sort.KBoolSort
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpRoundingModeSort
 import org.ksmt.sort.KFpSort
-import org.ksmt.symfpu.CustomRounderInfo.Companion.defaultRounderInfo
-import org.ksmt.symfpu.UnpackedFp.Companion.iteOp
-import org.ksmt.symfpu.UnpackedFp.Companion.makeInf
-import org.ksmt.symfpu.UnpackedFp.Companion.makeZero
+import org.ksmt.symfpu.operations.CustomRounderInfo.Companion.defaultRounderInfo
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.iteOp
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.makeInf
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.makeZero
 import org.ksmt.utils.BvUtils.bvOne
 import org.ksmt.utils.BvUtils.bvZero
 import org.ksmt.utils.cast

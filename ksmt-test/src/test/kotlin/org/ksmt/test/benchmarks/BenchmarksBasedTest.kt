@@ -379,12 +379,12 @@ abstract class BenchmarksBasedTest {
         @JvmStatic
         fun initWorkerPools() {
             solverManager = KSolverRunnerManager(
-                workerPoolSize = 4,
+                workerPoolSize = 8,
                 hardTimeout = SOLVER_SINGLE_OPERATION_TIMEOUT,
                 workerProcessIdleTimeout = 10.minutes
             )
             testWorkers = KsmtWorkerPool(
-                maxWorkerPoolSize = 4,
+                maxWorkerPoolSize = 8,
                 workerProcessIdleTimeout = 10.minutes,
                 workerFactory = object : KsmtWorkerFactory<TestProtocolModel> {
                     override val childProcessEntrypoint = TestWorkerProcess::class

@@ -1,4 +1,4 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.operations
 
 import org.ksmt.expr.KExpr
 import org.ksmt.sort.KBoolSort

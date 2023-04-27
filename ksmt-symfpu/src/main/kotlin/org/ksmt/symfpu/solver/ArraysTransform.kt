@@ -1,11 +1,8 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.solver
 
 import org.ksmt.KContext
-import org.ksmt.decl.KConstDecl
 import org.ksmt.decl.KDecl
-import org.ksmt.decl.KFuncDecl
 import org.ksmt.expr.KArrayLambdaBase
-import org.ksmt.expr.KConst
 import org.ksmt.expr.KExpr
 import org.ksmt.sort.KArray2Sort
 import org.ksmt.sort.KArray3Sort
@@ -14,14 +11,13 @@ import org.ksmt.sort.KArraySortBase
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
-import org.ksmt.symfpu.SymFPUModel.Companion.declContainsFp
+import org.ksmt.symfpu.operations.UnpackedFp
+import org.ksmt.symfpu.operations.packToBv
+import org.ksmt.symfpu.operations.unpack
 import org.ksmt.utils.cast
 import org.ksmt.utils.uncheckedCast
 
 class ArraysTransform(val ctx: KContext) {
-
-    val mapFpToBvDeclImpl = mutableMapOf<KDecl<*>, KConst<*>>()
-
     fun mkArrayAnyLambda(
         indices: List<KDecl<*>>,
         body: KExpr<*>,
@@ -41,37 +37,6 @@ class ArraysTransform(val ctx: KContext) {
             else -> mkArrayNLambda(indices, body)
         }
     }
-
-    fun transformDeclList(
-        decls: List<KDecl<*>>,
-    ): List<KDecl<*>> = decls.map {
-        transformDecl(it)
-    }
-
-
-    fun transformDecl(it: KDecl<*>) = with(ctx) {
-        val sort = it.sort
-        when {
-            !declContainsFp(it) -> {
-                it
-            }
-
-            it is KConstDecl<*> -> {
-                val newSort = transformSortRemoveFP(sort)
-                mapFpToBvDeclImpl.getOrPut(it) {
-                    mkFreshConst(it.name + "!tobv!", newSort).cast()
-                }.decl
-            }
-
-            it is KFuncDecl -> {
-                mkFreshFuncDecl(it.name, transformSortRemoveFP(it.sort), it.argSorts.fpToBvSorts())
-            }
-
-            else -> throw IllegalStateException("Unexpected decl type: $it")
-        }
-    }
-
-    private fun List<KSort>.fpToBvSorts() = map { ctx.transformSortRemoveFP(it) }
 
 
     fun <R : KSort> arraySelectUnpacked(sort: R, res: KExpr<R>): KExpr<R> = with(ctx) {

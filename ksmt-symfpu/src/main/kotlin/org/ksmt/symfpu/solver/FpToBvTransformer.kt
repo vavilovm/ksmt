@@ -1,7 +1,9 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.solver
 
 import org.ksmt.KContext
+import org.ksmt.decl.KConstDecl
 import org.ksmt.decl.KDecl
+import org.ksmt.decl.KFuncDecl
 import org.ksmt.expr.KApp
 import org.ksmt.expr.KArray2Lambda
 import org.ksmt.expr.KArray2Select
@@ -64,17 +66,49 @@ import org.ksmt.sort.KBoolSort
 import org.ksmt.sort.KBvSort
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
-import org.ksmt.symfpu.ArraysTransform.Companion.packToBvIfUnpacked
-import org.ksmt.symfpu.ArraysTransform.Companion.transformedArraySort
-import org.ksmt.symfpu.SymFPUModel.Companion.declContainsFp
-import org.ksmt.symfpu.UnpackedFp.Companion.iteOp
+import org.ksmt.symfpu.operations.UnpackedFp
+import org.ksmt.symfpu.operations.UnpackedFp.Companion.iteOp
+import org.ksmt.symfpu.operations.add
+import org.ksmt.symfpu.operations.bvToBool
+import org.ksmt.symfpu.operations.bvToFp
+import org.ksmt.symfpu.operations.divide
+import org.ksmt.symfpu.operations.equal
+import org.ksmt.symfpu.operations.fma
+import org.ksmt.symfpu.operations.fpToBv
+import org.ksmt.symfpu.operations.fpToFp
+import org.ksmt.symfpu.operations.greater
+import org.ksmt.symfpu.operations.greaterOrEqual
+import org.ksmt.symfpu.operations.isNegative
+import org.ksmt.symfpu.operations.isNormal
+import org.ksmt.symfpu.operations.isPositive
+import org.ksmt.symfpu.operations.isSubnormal
+import org.ksmt.symfpu.operations.less
+import org.ksmt.symfpu.operations.lessOrEqual
+import org.ksmt.symfpu.operations.max
+import org.ksmt.symfpu.operations.min
+import org.ksmt.symfpu.operations.multiply
+import org.ksmt.symfpu.operations.packToBv
+import org.ksmt.symfpu.operations.remainder
+import org.ksmt.symfpu.operations.roundToIntegral
+import org.ksmt.symfpu.operations.sqrt
+import org.ksmt.symfpu.operations.sub
+import org.ksmt.symfpu.operations.unpack
+import org.ksmt.symfpu.solver.ArraysTransform.Companion.packToBvIfUnpacked
+import org.ksmt.symfpu.solver.ArraysTransform.Companion.transformSortRemoveFP
+import org.ksmt.symfpu.solver.ArraysTransform.Companion.transformedArraySort
+import org.ksmt.symfpu.solver.SymFPUModel.Companion.declContainsFp
 import org.ksmt.utils.asExpr
 import org.ksmt.utils.cast
 
 class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
-    val arraysTransform = ArraysTransform(ctx)
+    private val mapFpToBvDeclImpl = mutableMapOf<KDecl<*>, KConst<*>>()
+    val mapFpToBvDecl: Map<KDecl<*>, KConst<*>> get() = mapFpToBvDeclImpl
+
+    private val arraysTransform = ArraysTransform(ctx)
+
     private val mapFpToUnpackedFpImpl =
         mutableMapOf<KDecl<KFpSort>, UnpackedFp<KFpSort>>()
+    // for tests
     val mapFpToUnpackedFp: Map<KDecl<KFpSort>, UnpackedFp<KFpSort>> get() = mapFpToUnpackedFpImpl
 
 
@@ -184,7 +218,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
         expr: KArrayLambdaBase<D, R>,
     ): KArrayLambdaBase<D, R> =
         transformExprAfterTransformed(expr, expr.body) { body ->
-            val newDecl = arraysTransform.transformDeclList(expr.indexVarDeclarations)
+            val newDecl = transformDeclList(expr.indexVarDeclarations)
             arraysTransform.mkArrayAnyLambda(newDecl, packToBvIfUnpacked(body)).cast()
         }.cast()
 
@@ -253,14 +287,14 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
     // quantified expressions
     override fun transform(expr: KExistentialQuantifier): KExpr<KBoolSort> = with(ctx) {
         transformExprAfterTransformed(expr, expr.body) { body ->
-            val bounds = arraysTransform.transformDeclList(expr.bounds)
+            val bounds = transformDeclList(expr.bounds)
             mkExistentialQuantifier(body, bounds)
         }
     }
 
     override fun transform(expr: KUniversalQuantifier): KExpr<KBoolSort> = with(ctx) {
         transformExprAfterTransformed(expr, expr.body) { body ->
-            val bounds = arraysTransform.transformDeclList(expr.bounds)
+            val bounds = transformDeclList(expr.bounds)
             mkUniversalQuantifier(body, bounds)
         }
     }
@@ -347,7 +381,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
     // function transformers
     override fun <T : KSort> transform(expr: KFunctionApp<T>): KExpr<T> =
         transformExprAfterTransformed(expr, expr.args) { args ->
-            val decl = arraysTransform.transformDecl(expr.decl)
+            val decl = transformDecl(expr.decl)
             val argsTransformed = args.map(::packToBvIfUnpacked)
             decl.apply(argsTransformed).cast()
         }
@@ -363,7 +397,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
                     unpack(asFp.sort,
                         mkFreshConst(asFp.decl.name + "!tobv!", mkBvSort(
                             asFp.sort.exponentBits + asFp.sort.significandBits)).also {
-                            arraysTransform.mapFpToBvDeclImpl[asFp.decl] = (it as KConst<KBvSort>)
+                            mapFpToBvDeclImpl[asFp.decl] = (it as KConst<KBvSort>)
                         }
                     )
                 }.cast()
@@ -372,7 +406,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
             expr.sort is KArraySortBase<*> -> {
                 val asArray: KConst<KArraySortBase<*>> = expr.cast()
                 val resSort = transformedArraySort(asArray)
-                arraysTransform.mapFpToBvDeclImpl.getOrPut(asArray.decl) {
+                mapFpToBvDeclImpl.getOrPut(asArray.decl) {
                     mkFreshConst(asArray.decl.name + "!tobvArr!", resSort).cast()
                 }.cast()
             }
@@ -442,4 +476,33 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
             f(value)
         }
 
+    private fun transformDeclList(
+        decls: List<KDecl<*>>,
+    ): List<KDecl<*>> = decls.map {
+        transformDecl(it)
+    }
+
+
+    private fun transformDecl(it: KDecl<*>) = with(ctx) {
+        val sort = it.sort
+        when {
+            !declContainsFp(it) -> {
+                it
+            }
+
+            it is KConstDecl<*> -> {
+                val newSort = transformSortRemoveFP(sort)
+                mapFpToBvDeclImpl.getOrPut(it) {
+                    mkFreshConst(it.name + "!tobv!", newSort).cast()
+                }.decl
+            }
+
+            it is KFuncDecl -> {
+                mkFreshFuncDecl(it.name, transformSortRemoveFP(it.sort),
+                    it.argSorts.map { ctx.transformSortRemoveFP(it) })
+            }
+
+            else -> throw IllegalStateException("Unexpected decl type: $it")
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.solver
 
 import org.ksmt.KContext
 import org.ksmt.decl.KConstDecl

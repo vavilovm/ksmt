@@ -1,4 +1,4 @@
-package org.ksmt.symfpu
+package org.ksmt.symfpu.solver
 
 import org.ksmt.KContext
 import org.ksmt.decl.KDecl
@@ -15,16 +15,17 @@ import org.ksmt.sort.KArraySortBase
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.sort.KUninterpretedSort
-import org.ksmt.symfpu.ArraysTransform.Companion.mkAnyArrayLambda
-import org.ksmt.symfpu.ArraysTransform.Companion.mkAnyArrayStore
+import org.ksmt.symfpu.solver.ArraysTransform.Companion.mkAnyArrayLambda
+import org.ksmt.symfpu.solver.ArraysTransform.Companion.mkAnyArrayStore
+import org.ksmt.symfpu.operations.pack
 import org.ksmt.utils.cast
 import org.ksmt.utils.uncheckedCast
 
 class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer: FpToBvTransformer) : KModel {
     override val declarations: Set<KDecl<*>>
         get() = kModel.declarations +
-            transformer.arraysTransform.mapFpToBvDeclImpl.keys -
-            transformer.arraysTransform.mapFpToBvDeclImpl.values.map { it.decl }.toSet()
+            transformer.mapFpToBvDecl.keys -
+            transformer.mapFpToBvDecl.values.map { it.decl }.toSet()
 
 
     override val uninterpretedSorts: Set<KUninterpretedSort>
@@ -42,9 +43,6 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
         return evaluator.apply(expr)
     }
 
-    private fun <T : KSort> getConst(decl: KDecl<T>) =
-        transformer.arraysTransform.mapFpToBvDeclImpl[decl]
-
     override fun <T : KSort> interpretation(decl: KDecl<T>): KModel.KFuncInterp<T>? = with(ctx) {
         ensureContextMatch(decl)
         return interpretations.getOrPut(decl) {
@@ -55,7 +53,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
                 } else return@with null
             }
 
-            val const: KConst<*> = getConst(decl) ?: return@with null
+            val const: KConst<*> = transformer.mapFpToBvDecl[decl] ?: return@with null
             val interpretation = kModel.interpretation(const.decl) ?: return null
             val default = interpretation.default?.let { getInterpretation(decl.sort, it) }
             val entries: List<KModel.KFuncInterpEntry<T>> = interpretation.entries.map {
