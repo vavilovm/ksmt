@@ -16,6 +16,8 @@ open class SymfpuSolver<Config : KSolverConfiguration>(
 ) : KSolver<Config> {
 
     private val transformer = FpToBvTransformer(ctx)
+    private val mapTransformedToOriginalAssertions =
+        mutableMapOf<KExpr<KBoolSort>, KExpr<KBoolSort>>()
 
     override fun configure(configurator: Config.() -> Unit) {
         solver.configure(configurator)
@@ -24,7 +26,8 @@ open class SymfpuSolver<Config : KSolverConfiguration>(
     override fun assert(expr: KExpr<KBoolSort>) = solver.assert(transformer.applyAndGetExpr(expr)) // AndGetExpr
 
     override fun assertAndTrack(expr: KExpr<KBoolSort>, trackVar: KConstDecl<KBoolSort>) =
-        solver.assertAndTrack(transformer.applyAndGetExpr(expr), trackVar)
+        solver.assertAndTrack(transformer.applyAndGetExpr(expr).also { mapTransformedToOriginalAssertions[it] = expr },
+            trackVar)
 
     override fun push() = solver.push()
 
@@ -34,11 +37,18 @@ open class SymfpuSolver<Config : KSolverConfiguration>(
     override fun check(timeout: Duration): KSolverStatus = solver.check(timeout)
 
     override fun checkWithAssumptions(assumptions: List<KExpr<KBoolSort>>, timeout: Duration): KSolverStatus =
-        solver.checkWithAssumptions(assumptions.map(transformer::applyAndGetExpr), timeout)
+        solver.checkWithAssumptions(assumptions.map { expr ->
+            transformer.applyAndGetExpr(expr).also { mapTransformedToOriginalAssertions[it] = expr }
+        }, timeout)
 
     override fun model(): KModel = SymFPUModel(solver.model(), ctx, transformer)
 
-    override fun unsatCore(): List<KExpr<KBoolSort>> = solver.unsatCore()
+    override fun unsatCore(): List<KExpr<KBoolSort>> {
+        return solver.unsatCore().map {
+            mapTransformedToOriginalAssertions[it]
+                ?: error("Unsat core contains an expression that was not transformed")
+        }
+    }
 
     override fun reasonOfUnknown(): String = solver.reasonOfUnknown()
 
