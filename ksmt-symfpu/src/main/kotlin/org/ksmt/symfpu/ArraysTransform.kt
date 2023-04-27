@@ -16,6 +16,7 @@ import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.symfpu.SymFPUModel.Companion.declContainsFp
 import org.ksmt.utils.cast
+import org.ksmt.utils.uncheckedCast
 
 class ArraysTransform(val ctx: KContext) {
 
@@ -83,7 +84,7 @@ class ArraysTransform(val ctx: KContext) {
     }
 
     companion object {
-        internal fun <D : KSort> packToBvIfUnpacked(expr: KExpr<D>): KExpr<KSort> = with(expr.ctx) {
+        internal fun <D : KSort> packToBvIfUnpacked(expr: KExpr<D>): KExpr<D> = with(expr.ctx) {
             ((expr as? UnpackedFp<*>)?.let { packToBv(expr) } ?: expr).cast()
         }
 
@@ -95,23 +96,6 @@ class ArraysTransform(val ctx: KContext) {
                 { d0, d1, d2 -> mkArraySort(d0, d1, d2, range) },
                 { mkArrayNSort(it, range) }
             )
-
-        fun <A : KArraySortBase<*>> KContext.mkAnyArraySelect(
-            array: KExpr<A>,
-            indices: List<KExpr<KSort>>,
-        ): KExpr<KSort> {
-            val domain = array.sort.domainSorts
-            return when (domain.size) {
-                KArraySort.DOMAIN_SIZE -> mkArraySelect(array.cast(), indices.single())
-                KArray2Sort.DOMAIN_SIZE -> mkArraySelect(array.cast(), indices.first(), indices.last())
-                KArray3Sort.DOMAIN_SIZE -> {
-                    val (d0, d1, d2) = indices
-                    mkArraySelect(array.cast(), d0, d1, d2)
-                }
-
-                else -> mkArrayNSelect(array.cast(), indices)
-            }
-        }
 
         fun KContext.mkAnyArrayLambda(domain: List<KDecl<*>>, body: KExpr<*>) =
             mkAnyArrayOperation(
@@ -135,6 +119,7 @@ class ArraysTransform(val ctx: KContext) {
                     val (d0, d1, d2) = indices
                     mkArrayStore(array.cast(), d0, d1, d2, value)
                 }
+
                 else -> mkArrayNStore(array.cast(), indices, value)
             }
         }
@@ -158,10 +143,10 @@ class ArraysTransform(val ctx: KContext) {
         }
 
 
-        fun transformedArraySort(
-            expr: KExpr<KArraySortBase<*>>,
-        ): KArraySortBase<KSort> = with(expr.ctx) {
-            return transformArraySort(expr.sort)
+        fun <A : KArraySortBase<*>> transformedArraySort(
+            expr: KExpr<A>,
+        ): A = with(expr.ctx) {
+            return transformArraySort(expr.sort).uncheckedCast()
         }
 
         private fun KContext.transformArraySort(sort: KArraySortBase<*>): KArraySortBase<KSort> {
