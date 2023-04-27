@@ -48,7 +48,17 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest(name = "{0}")
     @MethodSource("symfpuTestData")
-    fun testSolverYices(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+    fun testSolverYicesTransformed(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
+        solverManager.run {
+            registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
+            createSolver(ctx, SymfpuYicesSolver::class)
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @Execution(ExecutionMode.CONCURRENT)
+    @MethodSource("symfpuTestData")
+    fun testModelYicesTransformed(name: String, samplePath: Path) = testModelConversion(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
             createSolver(ctx, SymfpuYicesSolver::class)
