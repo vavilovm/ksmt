@@ -16,7 +16,6 @@ import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.sort.KUninterpretedSort
 import org.ksmt.symfpu.ArraysTransform.Companion.mkAnyArrayLambda
-import org.ksmt.symfpu.ArraysTransform.Companion.mkAnyArraySelect
 import org.ksmt.symfpu.ArraysTransform.Companion.mkAnyArrayStore
 import org.ksmt.utils.cast
 import org.ksmt.utils.uncheckedCast
@@ -65,7 +64,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
 
 
     private fun transformArrayLambda(
-        bvLambda: KExpr<KArraySortBase<*>>, toSort: KArraySortBase<*>,
+        bvLambda: KArrayLambdaBase<*,*>, toSort: KArraySortBase<*>,
     ): KExpr<*> = with(ctx) {
         val fromSort = bvLambda.sort
 
@@ -73,17 +72,12 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
             return@with bvLambda.uncheckedCast()
         }
 
-
-        val (indices: List<KConst<KSort>>, fromIndices: List<KConst<KSort>>) = toSort.domainSorts.zip(
-            transformer.lambdasVariables[toSort.domainSorts]!!) { it: KSort, bvConst: KConst<KSort>? ->
-            val fpConst: KConst<KSort> = mkFreshConst("i", it).cast()
-            Pair(fpConst, (bvConst ?: fpConst))
-        }.unzip()
-
-        val bvValue = mkAnyArraySelect(bvLambda, fromIndices)
+        val indices: List<KConst<KSort>> = toSort.domainSorts.map {
+            mkFreshConst("i", it).cast()
+        }
 
         val targetFpSort = toSort.range
-        val fpValue = transformToFpSort(targetFpSort, bvValue)
+        val fpValue = transformToFpSort(targetFpSort, bvLambda.body.cast())
 
         val replacement: KExpr<KArraySortBase<*>> = mkAnyArrayLambda(
             indices.map { it.decl }, fpValue
