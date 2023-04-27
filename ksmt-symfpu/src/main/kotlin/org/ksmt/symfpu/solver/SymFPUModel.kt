@@ -15,17 +15,20 @@ import org.ksmt.sort.KArraySortBase
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.sort.KUninterpretedSort
+import org.ksmt.symfpu.operations.pack
 import org.ksmt.symfpu.solver.ArraysTransform.Companion.mkAnyArrayLambda
 import org.ksmt.symfpu.solver.ArraysTransform.Companion.mkAnyArrayStore
-import org.ksmt.symfpu.operations.pack
 import org.ksmt.utils.cast
 import org.ksmt.utils.uncheckedCast
 
 class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer: FpToBvTransformer) : KModel {
+    private val mapBvToFpDecls =
+        transformer.mapFpToBvDecl.entries.associateBy({ it.value.decl }) { it.key }
+
     override val declarations: Set<KDecl<*>>
-        get() = kModel.declarations +
-            transformer.mapFpToBvDecl.keys -
-            transformer.mapFpToBvDecl.values.map { it.decl }.toSet()
+        get() = kModel.declarations.map {
+            mapBvToFpDecls[it] ?: it
+        }.toSet()
 
 
     override val uninterpretedSorts: Set<KUninterpretedSort>
