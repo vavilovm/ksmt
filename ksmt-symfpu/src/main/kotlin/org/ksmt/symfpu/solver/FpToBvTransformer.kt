@@ -52,11 +52,14 @@ import org.ksmt.expr.KFpSubExpr
 import org.ksmt.expr.KFpToBvExpr
 import org.ksmt.expr.KFpToFpExpr
 import org.ksmt.expr.KFpToIEEEBvExpr
+import org.ksmt.expr.KFpToRealExpr
 import org.ksmt.expr.KFpValue
 import org.ksmt.expr.KFunctionApp
 import org.ksmt.expr.KIteExpr
+import org.ksmt.expr.KRealToFpExpr
 import org.ksmt.expr.KUniversalQuantifier
 import org.ksmt.expr.transformer.KNonRecursiveTransformer
+import org.ksmt.solver.KSolverUnsupportedFeatureException
 import org.ksmt.sort.KArray2Sort
 import org.ksmt.sort.KArray3Sort
 import org.ksmt.sort.KArrayNSort
@@ -108,6 +111,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
 
     private val mapFpToUnpackedFpImpl =
         mutableMapOf<KDecl<KFpSort>, UnpackedFp<KFpSort>>()
+
     // for tests
     val mapFpToUnpackedFp: Map<KDecl<KFpSort>, UnpackedFp<KFpSort>> get() = mapFpToUnpackedFpImpl
 
@@ -160,6 +164,12 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
     override fun <Fp : KFpSort> transform(expr: KFpEqualExpr<Fp>): KExpr<KBoolSort> = with(ctx) {
         transformHelper(expr, ::equal)
     }
+
+    override fun <Fp : KFpSort> transform(expr: KFpToRealExpr<Fp>) =
+        throw KSolverUnsupportedFeatureException("FpToRealExpr is not supported")
+
+    override fun <Fp : KFpSort> transform(expr: KRealToFpExpr<Fp>) =
+        throw KSolverUnsupportedFeatureException("KRealToFpExpr is not supported")
 
     override fun <Fp : KFpSort> transform(expr: KFpLessExpr<Fp>): KExpr<KBoolSort> = with(ctx) {
         transformHelper(expr, ::less)
@@ -444,7 +454,8 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
 
     override fun <T : KFpSort> transform(expr: KBvToFpExpr<T>) =
         transformExprAfterTransformed(expr, expr.roundingMode, expr.value) { roundingMode, value ->
-            bvToFp(roundingMode, value, expr.sort, expr.signed)
+            val res = bvToFp(roundingMode, value, expr.sort, expr.signed)
+            res
         }
 
     override fun <T : KFpSort> transform(expr: KFpToIEEEBvExpr<T>) =
