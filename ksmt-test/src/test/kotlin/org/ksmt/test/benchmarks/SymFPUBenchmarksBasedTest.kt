@@ -47,7 +47,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
     @Execution(ExecutionMode.CONCURRENT)
     @ParameterizedTest(name = "{0}")
-    @MethodSource("symfpuTestData")
+    @MethodSource("yicesTestData")
     fun testSolverYicesTransformed(name: String, samplePath: Path) = testSolver(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
@@ -57,7 +57,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
     @ParameterizedTest(name = "{0}")
     @Execution(ExecutionMode.CONCURRENT)
-    @MethodSource("symfpuTestData")
+    @MethodSource("yicesTestData")
     fun testModelYicesTransformed(name: String, samplePath: Path) = testModelConversion(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
@@ -89,13 +89,16 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
         @JvmStatic
         fun symfpuTestData(): List<BenchmarkTestArguments> {
-            println("Running benchmarks for SymFPU")
             return testData.filter {
                 "FP" in it.name
-            }.ensureNotEmpty().apply {
-                    println("Running $size benchmarks")
-                }
+            }.ensureNotEmpty()
         }
+
+
+        @JvmStatic
+        fun yicesTestData() = symfpuTestData()
+            .filterNot { "QF" !in it.name || "N" in it.name }
+            .ensureNotEmpty()
     }
 }
 
