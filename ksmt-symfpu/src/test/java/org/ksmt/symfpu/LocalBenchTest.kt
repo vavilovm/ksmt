@@ -28,7 +28,7 @@ class LocalBenchTest {
         }
     }
 
-    class AsArrayDeclChecker(override val ctx: KContext, val model: KModel) : KTransformer {
+    class AsArrayDeclChecker(override val ctx: KContext, private val model: KModel) : KTransformer {
         override fun <A : KArraySortBase<R>, R : KSort> transform(expr: KFunctionAsArray<A, R>): KExpr<A> {
             val interp = model.interpretation(expr.function)
             println("got interp: $interp")
