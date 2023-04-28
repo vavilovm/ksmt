@@ -49,11 +49,8 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
     override fun <T : KSort> interpretation(decl: KDecl<T>): KModel.KFuncInterp<T>? = with(ctx) {
         ensureContextMatch(decl)
         return interpretations.getOrPut(decl) {
-            if (!declContainsFp<T>(decl)) {
-                val interpretation = kModel.interpretation(decl)
-                if (interpretation != null) {
-                    return@getOrPut interpretation
-                } else return@with null
+            if (!declContainsFp(decl)) {
+                return kModel.interpretation(decl)
             }
 
             val const: KConst<*> = transformer.mapFpToBvDecl[decl] ?: return@with null
@@ -63,7 +60,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
                 val args = it.args.zip(decl.argSorts) { arg, sort ->
                     transformToFpSort(sort, arg.cast())
                 }
-                val newValue = getInterpretation(decl.sort, it.value)
+                val newValue = transformToFpSort(decl.sort, it.value.cast())
                 KModel.KFuncInterpEntry(args, newValue).cast()
             }
             KModel.KFuncInterp(decl, interpretation.vars, entries, default)
