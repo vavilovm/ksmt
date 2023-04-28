@@ -123,10 +123,8 @@ internal fun <Fp : KFpSort> KContext.equal(
             and (left.unbiasedExponent eq right.unbiasedExponent))))
 
     if (left.packedBv is UnpackedFp.PackedFp.Exists && right.packedBv is UnpackedFp.PackedFp.Exists) {
-        println("packed bv path")
         return neitherNan and (bothZero or (left.packedBv eq right.packedBv))
     }
-    println("not .. packed bv path")
 
     return flagsAndExponent and (left.normalizedSignificand eq right.normalizedSignificand)
 }

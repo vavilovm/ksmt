@@ -5,16 +5,12 @@ import org.ksmt.KContext
 import org.ksmt.expr.printer.BvValuePrintMode
 import org.ksmt.expr.printer.PrinterParams
 import org.ksmt.solver.KSolverStatus
-import org.ksmt.solver.z3.KZ3SMTLibParser
 import org.ksmt.solver.z3.KZ3Solver
 import org.ksmt.solver.z3.KZ3SolverConfiguration
-import org.ksmt.symfpu.operations.createContext
 import org.ksmt.symfpu.operations.defaultRounding
 import org.ksmt.symfpu.solver.SymfpuSolver
 import org.ksmt.utils.getValue
 import org.ksmt.utils.mkConst
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
@@ -256,22 +252,6 @@ class ArraySymfpuTest {
         }
     }
 
-    @Test
-    fun testFromBench() = with(createContext()) {
-        val name = "QF_ABVFP_interpolation2_true-unreach-call.c_37.smt2"
-        val path = Path.of("/Users/Mark.Vavilov/ksmt/ksmt-test/build/resources/test/testData").resolve(name)
-        val content = Files.readString(path)
-        val assertionsAll = KZ3SMTLibParser(this).parse(content)
-        SymfpuZ3Solver(this).use { solver ->
-            assertionsAll.forEach { solver.assert(it) }
-            solver.check()
-            val model = solver.model()
-
-            val res = assertionsAll.map { model.eval(it, true) }
-            println(res)
-            assert(res.all { it == trueExpr })
-        }
-    }
 
     @Test
     fun testFromBench2() = with(KContext(simplificationMode = KContext.SimplificationMode.NO_SIMPLIFY,
