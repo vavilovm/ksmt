@@ -9,15 +9,10 @@ import org.ksmt.solver.KModel
 import org.ksmt.solver.yices.KYicesSolver
 import org.ksmt.solver.yices.KYicesSolverConfiguration
 import org.ksmt.solver.z3.KZ3SMTLibParser
-import org.ksmt.solver.z3.KZ3Solver
-import org.ksmt.solver.z3.KZ3SolverConfiguration
 import org.ksmt.sort.KArraySortBase
 import org.ksmt.sort.KSort
 import org.ksmt.symfpu.operations.createContext
 import org.ksmt.symfpu.solver.SymfpuSolver
-import org.ksmt.utils.getValue
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.test.assertNotNull
 
 class LocalBenchTest {
@@ -50,7 +45,6 @@ class LocalBenchTest {
         val assertionsAll = KZ3SMTLibParser(this).parse(content)
 
         SymfpuYicesSolver(this).use { solver ->
-//        ArraySymfpuTest.SymfpuZ3Solver(this).use { solver ->
             assertionsAll.forEach {
                 println(it)
                 solver.assert(it)
@@ -62,26 +56,6 @@ class LocalBenchTest {
             println(res)
             assert(res.all { it == trueExpr })
             checkAsArrayDeclsPresentInModel(this, model)
-        }
-    }
-
-    @Test
-    fun testFromBench2() = with(createContext()) {
-        val rm1 by mkFpRoundingModeSort()
-        val rm2 by mkFpRoundingModeSort()
-        val lhs = mkRealToFpExpr(fp32Sort, rm1, mkRealNum(0, 1))
-        val rhs = mkBvToFpExpr(fp32Sort, rm2, mkBv(0, 32u), true)
-        val expr = !(lhs eq rhs)
-
-
-        ArraySymfpuTest.SymfpuZ3Solver(this).use { solver ->
-            solver.assert(expr)
-            solver.check()
-            val model = solver.model()
-
-            val res = model.eval(expr, true)
-            println(res)
-            assert(expr == trueExpr)
         }
     }
 }

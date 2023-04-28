@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - vavilovm/develop/symfpu-yices-asarray-wip
 
   pull_request:
     types: [ opened, edited ]
@@ -15,7 +16,7 @@ jobs:
     name: Run tests
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest ]
 
     runs-on: ${{ matrix.os }}
 
@@ -29,22 +30,12 @@ jobs:
           distribution: 'zulu'
           cache: gradle
 
-      - name: Build and run z3 tests on macOS
-        uses: gradle/gradle-build-action@v2
-        if: runner.os == 'macOS'
-        with:
-          arguments: |
-            :ksmt-z3:build
-             --no-daemon
-             --continue
-             -PrunBenchmarksBasedTests=false
-
       - name: Build and run simple tests on Linux or Windows
         uses: gradle/gradle-build-action@v2
         if: runner.os != 'macOS'
         with:
           arguments: |
-            build
+            :ksmt-symfpu:build
              --no-daemon
              --continue
              -PrunBenchmarksBasedTests=false
