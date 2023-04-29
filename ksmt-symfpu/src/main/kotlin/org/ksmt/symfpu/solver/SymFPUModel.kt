@@ -56,6 +56,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
             val const: KConst<*> = transformer.mapFpToBvDecl[decl] ?: return@with null
             val interpretation = kModel.interpretation(const.decl) ?: return null
             val default = interpretation.default?.let { getInterpretation(decl.sort, it) }
+            val vars = interpretation.vars.map { transformer.mapFpToBvDecl[it]?.decl ?: it }
             val entries: List<KModel.KFuncInterpEntry<T>> = interpretation.entries.map {
                 val args = it.args.zip(decl.argSorts) { arg, sort ->
                     transformToFpSort(sort, arg.cast())
@@ -63,7 +64,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
                 val newValue = transformToFpSort(decl.sort, it.value.cast())
                 KModel.KFuncInterpEntry(args, newValue).cast()
             }
-            KModel.KFuncInterp(decl, interpretation.vars, entries, default)
+            KModel.KFuncInterp(decl, vars, entries, default)
         }.cast()
     }
 
