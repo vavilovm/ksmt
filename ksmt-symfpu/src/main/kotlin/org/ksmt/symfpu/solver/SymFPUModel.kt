@@ -7,7 +7,9 @@ import org.ksmt.expr.KArrayLambdaBase
 import org.ksmt.expr.KArrayStoreBase
 import org.ksmt.expr.KConst
 import org.ksmt.expr.KExpr
+import org.ksmt.expr.KFunctionAsArray
 import org.ksmt.expr.KUninterpretedSortValue
+import org.ksmt.expr.transformer.KTransformer
 import org.ksmt.solver.KModel
 import org.ksmt.solver.model.KModelEvaluator
 import org.ksmt.solver.model.KModelImpl
@@ -54,7 +56,6 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
             val const: KConst<*> = transformer.mapFpToBvDecl[decl] ?: return@with null
             val interpretation = kModel.interpretation(const.decl) ?: return null
             val default = interpretation.default?.let { getInterpretation(decl.sort, it) }
-            val vars = interpretation.vars.map { transformer.mapFpToBvDecl[it]?.decl ?: it }
             val entries: List<KModel.KFuncInterpEntry<T>> = interpretation.entries.map {
                 val args = it.args.zip(decl.argSorts) { arg, sort ->
                     transformToFpSort(sort, arg.cast())
@@ -62,7 +63,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
                 val newValue = transformToFpSort(decl.sort, it.value.cast())
                 KModel.KFuncInterpEntry(args, newValue).cast()
             }
-            KModel.KFuncInterp(decl, vars, entries, default)
+            KModel.KFuncInterp(decl, interpretation.vars, entries, default)
         }.cast()
     }
 
@@ -143,9 +144,20 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
         return kModel.uninterpretedSortUniverse(sort)
     }
 
+    class AsArrayDeclInterpreter(override val ctx: KContext, private val model: KModel) : KTransformer {
+        override fun <A : KArraySortBase<R>, R : KSort> transform(expr: KFunctionAsArray<A, R>): KExpr<A> {
+            model.interpretation(expr.function)
+            return expr
+        }
+    }
+
     override fun detach(): KModel {
-        declarations.forEach {
-            interpretation(it)
+        val asArrayDeclInterpreter = AsArrayDeclInterpreter(ctx, this)
+        declarations.forEach { decl ->
+            interpretation(decl)?.apply {
+                entries.forEach { it.value.accept(asArrayDeclInterpreter) }
+                default?.accept(asArrayDeclInterpreter)
+            }
         }
 
         val uninterpretedSortsUniverses = uninterpretedSorts.associateWith {
