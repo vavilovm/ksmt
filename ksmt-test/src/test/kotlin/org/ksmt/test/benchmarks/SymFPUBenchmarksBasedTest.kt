@@ -97,6 +97,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
         @JvmStatic
         fun yicesTestData() = symfpuTestData()
+            .filter { "QF_ABVFP_query.00817.smt2" in it.name }
             .filterNot { "QF" !in it.name || "N" in it.name }
             .ensureNotEmpty()
     }

@@ -78,39 +78,36 @@ class LocalBenchTest {
 
     @Test
     fun testFromBenchWithRunner() = runBlocking {
-        with(createContext()) {
-            val ctx = this
-            KSolverRunnerManager(
-                workerPoolSize = 4,
-                hardTimeout = 15.seconds,
-                workerProcessIdleTimeout = 10.minutes
-            ).use { solverManager ->
+        val ctx = createContext()
+        KSolverRunnerManager(
+            workerPoolSize = 4,
+            hardTimeout = 15.seconds,
+            workerProcessIdleTimeout = 10.minutes
+        ).use { solverManager ->
 
-                val name = "QF_ABVFP_query.00817.smt2"
-                val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
+            val name = "QF_ABVFP_query.00817.smt2"
+            val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
 
-                val ksmtAssertions = KZ3SMTLibParser(this).parse(content)
+            val ksmtAssertions = KZ3SMTLibParser(ctx).parse(content)
 
-                solverManager.registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
-                val model = solverManager.createSolver(ctx, SymfpuYicesSolver::class).use { testSolver ->
-                    ksmtAssertions.forEach { testSolver.assertAsync(it) }
+            solverManager.registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
+            val model = solverManager.createSolver(ctx, SymfpuYicesSolver::class).use { testSolver ->
+                ksmtAssertions.forEach { testSolver.assertAsync(it) }
 
-                    val status = testSolver.checkAsync(15.seconds)
+                val status = testSolver.checkAsync(15.seconds)
 
-                    assertEquals(KSolverStatus.SAT, status)
+                assertEquals(KSolverStatus.SAT, status)
 
-                    testSolver.modelAsync()
-                }
-
-                println("check as-array decls")
-                checkAsArrayDeclsPresentInModel(this, model)
-
-                println("eval results")
-                val res = ksmtAssertions.map { model.eval(it, true) }
-                println("check results")
-                res.forEach { assertEquals(trueExpr, it) }
-
+                testSolver.modelAsync()
             }
+
+            println("check as-array decls")
+            checkAsArrayDeclsPresentInModel(ctx, model)
+
+            println("eval results")
+            val res = ksmtAssertions.map { model.eval(it, true) }
+            println("check results")
+            res.forEach { assertEquals(ctx.trueExpr, it) }
         }
     }
 }
