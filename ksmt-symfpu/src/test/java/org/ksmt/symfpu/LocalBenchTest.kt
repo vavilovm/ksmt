@@ -52,15 +52,15 @@ class LocalBenchTest {
 
         SymfpuYicesSolver(this).use { solver ->
             assertionsAll.forEach {
-                println("assert $it")
+                println("assert")
                 solver.assert(it)
             }
             println("check")
             solver.check()
             println("get model")
-            val model = solver.model()
-//            println("detach model")
-//            val model = model1.detach()
+            val model1 = solver.model()
+            println("detach model")
+            val model = model1.detach()
 
 
             println("check as-array decls")
@@ -91,15 +91,15 @@ class LocalBenchTest {
             solverManager.registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
             solverManager.createSolver(ctx, SymfpuYicesSolver::class).use { solver ->
                 assertionsAll.forEach {
-                    println("assert $it")
+                    println("assert")
                     solver.assert(it)
                 }
                 println("check")
                 solver.check()
                 println("get model")
-                val model = solver.model()
-//                println("detach model")
-//                val model = model1.detach()
+                val model1 = solver.model()
+                println("detach model")
+                val model = model1.detach()
 
                 println("check as-array decls")
                 checkAsArrayDeclsPresentInModel(this, model)
