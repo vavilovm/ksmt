@@ -63,7 +63,9 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
                 val newValue = transformToFpSort(decl.sort, it.value.cast())
                 KModel.KFuncInterpEntry(args, newValue).cast()
             }
-            KModel.KFuncInterp(decl, interpretation.vars, entries, default)
+            val vars = interpretation.vars.map { mapBvToFpDecls[it] ?: it }
+
+            KModel.KFuncInterp(decl, vars, entries, default)
         }.cast()
     }
 
