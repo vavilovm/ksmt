@@ -29,7 +29,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
         get() = transformer.mapFpToBvDecl.entries.associateBy({ it.value.decl }) { it.key }
 
     override val declarations: Set<KDecl<*>>
-        get() = (kModel.declarations + mapBvToFpDecls.values + mapBvToFpDecls.values).toSet()
+        get() = (kModel.declarations.map { mapBvToFpDecls[it] ?: it }).toSet()
 
 
     override val uninterpretedSorts: Set<KUninterpretedSort>
@@ -51,7 +51,7 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
         ensureContextMatch(decl)
         return interpretations.getOrPut(decl) {
             if (!declContainsFp(decl)) {
-                return kModel.interpretation(decl)
+                return@getOrPut kModel.interpretation<T>(decl) ?: return@with null
             }
 
             val const: KConst<*> = transformer.mapFpToBvDecl[decl] ?: return@with null
