@@ -110,6 +110,10 @@ tasks.withType<Test> {
         dependsOn.add(prepareTestData)
         environment("benchmarkChunkMaxSize", benchmarkChunkMaxSize)
         environment("benchmarkChunk", benchmarkChunk)
+        testLogging {
+            showStandardStreams = true
+            outputs.upToDateWhen { false }
+        }
     } else {
         exclude("org/ksmt/test/benchmarks/**")
 

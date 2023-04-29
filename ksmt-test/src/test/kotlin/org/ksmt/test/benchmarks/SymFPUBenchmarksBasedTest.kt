@@ -30,7 +30,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
     @ParameterizedTest(name = "{0}")
     @Execution(ExecutionMode.CONCURRENT)
-    @MethodSource("symfpuTestData")
+    @MethodSource("yicesTestData")
     fun testModelZ3Transformed(name: String, samplePath: Path) = testModelConversion(name, samplePath) { ctx ->
         solverManager.run {
             registerSolver(SymfpuZ3Solver::class, KZ3SolverUniversalConfiguration::class)
@@ -97,8 +97,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
         @JvmStatic
         fun yicesTestData() = symfpuTestData()
-            .filter { "QF_ABVFP_query.00817.smt2" in it.name }
-            .filterNot { "QF" !in it.name || "N" in it.name }
+            .filter { "QF_ABVFP" in it.name && "00817" in it.name }
             .ensureNotEmpty()
     }
 }
