@@ -50,7 +50,7 @@ class LocalBenchTest {
                 solver.assert(it)
             }
             solver.check()
-            val model = solver.model()
+            val model = solver.model().detach()
 
             val res = assertionsAll.map { model.eval(it, true) }
             println(res)
