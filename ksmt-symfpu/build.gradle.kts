@@ -9,6 +9,7 @@ dependencies {
     testImplementation(project(mapOf("path" to ":ksmt-z3")))
     testImplementation(project(mapOf("path" to ":ksmt-bitwuzla")))
     testImplementation(project(mapOf("path" to ":ksmt-yices")))
+    testImplementation(project(mapOf("path" to ":ksmt-runner")))
 }
 
 tasks.withType<KotlinCompile> {

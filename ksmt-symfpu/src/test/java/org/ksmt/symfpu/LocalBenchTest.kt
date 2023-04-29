@@ -7,14 +7,18 @@ import org.ksmt.expr.KExpr
 import org.ksmt.expr.KFunctionAsArray
 import org.ksmt.expr.transformer.KTransformer
 import org.ksmt.solver.KModel
+import org.ksmt.solver.runner.KSolverRunnerManager
 import org.ksmt.solver.yices.KYicesSolver
 import org.ksmt.solver.yices.KYicesSolverConfiguration
+import org.ksmt.solver.yices.KYicesSolverUniversalConfiguration
 import org.ksmt.solver.z3.KZ3SMTLibParser
 import org.ksmt.sort.KArraySortBase
 import org.ksmt.sort.KSort
 import org.ksmt.symfpu.operations.createContext
 import org.ksmt.symfpu.solver.SymfpuSolver
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class LocalBenchTest {
     class SymfpuYicesSolver(ctx: KContext) : SymfpuSolver<KYicesSolverConfiguration>(KYicesSolver(ctx), ctx)
@@ -54,15 +58,60 @@ class LocalBenchTest {
             println("check")
             solver.check()
             println("get model")
-            val model1 = solver.model()
-            println("detach model")
-            val model = model1.detach()
+            val model = solver.model()
+//            println("detach model")
+//            val model = model1.detach()
+
+
+            println("check as-array decls")
+            checkAsArrayDeclsPresentInModel(this, model)
+
             println("eval results")
             val res = assertionsAll.map { model.eval(it, true) }
             println("check results")
             res.forEach { assertEquals(trueExpr, it) }
-            println("check as-array decls")
-            checkAsArrayDeclsPresentInModel(this, model)
         }
     }
+
+
+    @Test
+    fun testFromBenchWithRunner() = with(createContext()) {
+        val ctx = this
+        KSolverRunnerManager(
+            workerPoolSize = 4,
+            hardTimeout = 15.seconds,
+            workerProcessIdleTimeout = 10.minutes
+        ).use { solverManager ->
+
+            val name = "QF_ABVFP_query.00817.smt2"
+            val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
+
+            val assertionsAll = KZ3SMTLibParser(this).parse(content)
+
+            solverManager.registerSolver(SymfpuYicesSolver::class, KYicesSolverUniversalConfiguration::class)
+            solverManager.createSolver(ctx, SymfpuYicesSolver::class).use { solver ->
+                assertionsAll.forEach {
+                    println("assert $it")
+                    solver.assert(it)
+                }
+                println("check")
+                solver.check()
+                println("get model")
+                val model = solver.model()
+//                println("detach model")
+//                val model = model1.detach()
+
+                println("check as-array decls")
+                checkAsArrayDeclsPresentInModel(this, model)
+
+                println("eval results")
+                val res = assertionsAll.map { model.eval(it, true) }
+                println("check results")
+                res.forEach { assertEquals(trueExpr, it) }
+
+            }
+        }
+    }
+
+
 }
