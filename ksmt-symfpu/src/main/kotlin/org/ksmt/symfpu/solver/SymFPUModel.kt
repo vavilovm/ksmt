@@ -22,8 +22,8 @@ import org.ksmt.utils.cast
 import org.ksmt.utils.uncheckedCast
 
 class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer: FpToBvTransformer) : KModel {
-    private val mapBvToFpDecls =
-        transformer.mapFpToBvDecl.entries.associateBy({ it.value.decl }) { it.key }
+    private val mapBvToFpDecls
+        get() = transformer.mapFpToBvDecl.entries.associateBy({ it.value.decl }) { it.key }
 
     override val declarations: Set<KDecl<*>>
         get() = kModel.declarations.map {
