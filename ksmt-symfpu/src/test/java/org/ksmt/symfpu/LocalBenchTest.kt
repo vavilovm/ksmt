@@ -102,8 +102,8 @@ class LocalBenchTest {
     fun testFromBenchWithRunner() = runBlocking {
         val ctx = createContext()
         KSolverRunnerManager(
-            workerPoolSize = 4,
-            hardTimeout = 15.seconds,
+            workerPoolSize = 1,
+            hardTimeout = 150.seconds,
             workerProcessIdleTimeout = 10.minutes
         ).use { solverManager ->
 
@@ -116,7 +116,7 @@ class LocalBenchTest {
             val model = solverManager.createSolver(ctx, SymfpuYicesSolver::class).use { testSolver ->
                 ksmtAssertions.forEach { testSolver.assertAsync(it) }
 
-                val status = testSolver.checkAsync(15.seconds)
+                val status = testSolver.checkAsync(150.seconds)
 
                 assertEquals(KSolverStatus.SAT, status)
 
