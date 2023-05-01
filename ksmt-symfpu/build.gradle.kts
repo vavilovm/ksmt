@@ -18,6 +18,10 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.freeCompilerArgs += listOf("-Xjvm-default=all")
 }
 
+testlogger {
+    showStandardStreams = true
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {

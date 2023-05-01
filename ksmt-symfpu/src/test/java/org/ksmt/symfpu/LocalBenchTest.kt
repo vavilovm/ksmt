@@ -24,6 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class LocalBenchTest {
     class SymfpuYicesSolver(ctx: KContext) : SymfpuSolver<KYicesSolverConfiguration>(KYicesSolver(ctx), ctx)
+//    class SymfpuZ3Solver(ctx: KContext) : SymfpuSolver<KZ3SolverConfiguration>(KZ3Solver(ctx), ctx)
 
     private fun checkAsArrayDeclsPresentInModel(ctx: KContext, model: KModel) {
         val checker = AsArrayDeclChecker(ctx, model)
@@ -37,11 +38,38 @@ class LocalBenchTest {
 
     class AsArrayDeclChecker(override val ctx: KContext, private val model: KModel) : KTransformer {
         override fun <A : KArraySortBase<R>, R : KSort> transform(expr: KFunctionAsArray<A, R>): KExpr<A> {
-            println("in transform KFunctionAsArray: $expr")
+            println("in transform KFunctionAsArray: $expr func=${expr.function} sort=${expr.sort} funcsort=${expr.function.sort}")
             val interp = model.interpretation(expr.function)
             println("got interp: $interp")
             assertNotNull(interp, "no interpretation for as-array: $expr")
             return expr
+        }
+    }
+
+    @Test
+    fun testFromBenchDetach() = with(createContext()) {
+        val name = "QF_ABVFP_filter2_iterated_true-unreach-call.c_185.smt2"
+        val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
+
+        val assertionsAll = KZ3SMTLibParser(this).parse(content)
+
+        SymfpuYicesSolver(this).use { solver ->
+            assertionsAll.forEach {
+                solver.assert(it)
+            }
+            solver.check()
+            val model1 = solver.model()
+            println("detach model")
+            val model = model1.detach()
+
+
+            println("check as-array decls")
+            checkAsArrayDeclsPresentInModel(this, model)
+
+            println("eval results")
+            val res = assertionsAll.map { model.eval(it, true) }
+            println("check results")
+            res.forEach { assertEquals(trueExpr, it) }
         }
     }
 
@@ -54,16 +82,10 @@ class LocalBenchTest {
 
         SymfpuYicesSolver(this).use { solver ->
             assertionsAll.forEach {
-                println("assert")
                 solver.assert(it)
             }
-            println("check")
             solver.check()
-            println("get model")
-            val model1 = solver.model()
-            println("detach model")
-            val model = model1.detach()
-
+            val model = solver.model()
 
             println("check as-array decls")
             checkAsArrayDeclsPresentInModel(this, model)
