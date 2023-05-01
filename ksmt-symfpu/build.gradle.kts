@@ -8,6 +8,9 @@ dependencies {
     implementation(project(mapOf("path" to ":ksmt-core")))
     testImplementation(project(mapOf("path" to ":ksmt-z3")))
     testImplementation(project(mapOf("path" to ":ksmt-bitwuzla")))
+    testImplementation(project(mapOf("path" to ":ksmt-yices")))
+    testImplementation(project(mapOf("path" to ":ksmt-runner")))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-RC")
 }
 
 tasks.withType<KotlinCompile> {
