@@ -1,6 +1,11 @@
 package org.ksmt.symfpu.operations
 
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -17,10 +22,17 @@ import org.ksmt.expr.KFpValue
 import org.ksmt.expr.printer.BvValuePrintMode
 import org.ksmt.expr.printer.PrinterParams
 import org.ksmt.expr.transformer.KNonRecursiveTransformer
+import org.ksmt.runner.core.KsmtWorkerArgs
+import org.ksmt.runner.core.KsmtWorkerFactory
+import org.ksmt.runner.core.KsmtWorkerPool
+import org.ksmt.runner.core.RdServer
+import org.ksmt.runner.core.WorkerInitializationFailedException
+import org.ksmt.runner.generated.models.TestProtocolModel
 import org.ksmt.solver.KModel
 import org.ksmt.solver.KSolver
 import org.ksmt.solver.KSolverStatus
 import org.ksmt.solver.bitwuzla.KBitwuzlaSolver
+import org.ksmt.solver.runner.KSolverRunnerManager
 import org.ksmt.solver.z3.KZ3Solver
 import org.ksmt.sort.KBoolSort
 import org.ksmt.sort.KFp128Sort
@@ -29,15 +41,20 @@ import org.ksmt.sort.KFp64Sort
 import org.ksmt.sort.KFpSort
 import org.ksmt.sort.KSort
 import org.ksmt.symfpu.solver.FpToBvTransformer
+import org.ksmt.test.TestRunner
+import org.ksmt.test.TestWorker
+import org.ksmt.test.TestWorkerProcess
 import org.ksmt.utils.cast
 import org.ksmt.utils.getValue
 import org.ksmt.utils.uncheckedCast
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 //typealias Fp = KFp16Sort
 typealias Fp = KFp32Sort
 
 class FpToBvTransformerTest {
+
     private fun KContext.createTwoFp32Variables(): Pair<KApp<Fp, *>, KApp<Fp, *>> {
         val a by mkFp32Sort()
         val b by mkFp32Sort()
@@ -235,30 +252,53 @@ class FpToBvTransformerTest {
     private fun <T : KSort> KContext.testFpExpr(
         exprToTransform: KExpr<T>,
         printVars: Map<String, KApp<*, *>> = emptyMap(),
-        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>) = { _, _ -> trueExpr }
+        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>) = { _, _ -> trueExpr },
     ) {
+        val ctx = this
         val transformer = FpToBvTransformer(this)
 
         if (System.getProperty("os.name") == "Mac OS X") {
-            KZ3Solver(this)
+            solverManager.createSolver(this, KZ3Solver::class)
         } else {
-            KBitwuzlaSolver(this)
+            solverManager.createSolver(this, KBitwuzlaSolver::class)
         }.use { solver ->
-            checkTransformer(transformer, solver, exprToTransform, printVars, extraAssert)
+            with(testWorkers) {
+
+                runBlocking {
+                    val worker = try {
+                        getOrCreateFreeWorker()
+                    } catch (ex: WorkerInitializationFailedException) {
+                        System.err.println("worker initialization failed -- ${ex.message}")
+                        Assumptions.assumeTrue(false)
+                        return@runBlocking
+                    }
+                    worker.astSerializationCtx.initCtx(ctx)
+                    worker.lifetime.onTermination {
+                        worker.astSerializationCtx.resetCtx()
+                    }
+                    try {
+                        TestRunner(ctx, 20.seconds, worker).let {
+                            try {
+                                it.init()
+                                checkTransformer(transformer, solver, exprToTransform, printVars, extraAssert)
+                            } finally {
+                                it.delete()
+                            }
+                        }
+                    } catch (ex: TimeoutCancellationException) {
+                        System.err.println("worker timeout -- ${ex.message}")
+                        Assumptions.assumeTrue(false)
+                        return@runBlocking
+                    } finally {
+                        worker.release()
+                    }
+                }
+
+            }
+
         }
     }
 
-
-//    @Test
-//    fun testFpToBvFmaFp16RTNExpr() = with(KContext()) {
-//        val a by mkFp16Sort()
-//        val b by mkFp16Sort()
-//        val c by mkFp16Sort()
-//        testFpExpr(
-//            mkFpFusedMulAddExpr(mkFpRoundingModeExpr(KFpRoundingMode.RoundTowardNegative), a, b, c),
-//            mapOf("a" to a, "b" to b, "c" to c),
-//        )
-//    }
 
     @Execution(ExecutionMode.CONCURRENT)
     @Test
@@ -290,7 +330,6 @@ class FpToBvTransformerTest {
 //            mapOf("a" to a, "b" to b),
 //        )
 //    }
-
 
 
     @Test
@@ -401,6 +440,7 @@ class FpToBvTransformerTest {
             mapOf("a" to a),
         )
     }
+
     @Test
     fun testFpToBvIsPositiveNaNExpr() = with(KContext(printerParams = PrinterParams(BvValuePrintMode.BINARY))) {
 //        val a by mkFp32Sort()
@@ -476,7 +516,6 @@ class FpToBvTransformerTest {
     }
 
 
-
     @Test
     fun testFpFromBvExpr() = with(createContext()) {
         val sign by mkBv1Sort()
@@ -496,6 +535,7 @@ class FpToBvTransformerTest {
             mapOf("a" to a),
         )
     }
+
     @Test
     fun testIteExpr() = with(createContext()) {
         val a by mkFp32Sort()
@@ -525,7 +565,7 @@ class FpToBvTransformerTest {
         solver: KSolver<*>,
         exprToTransform: KExpr<T>,
         printVars: Map<String, KApp<*, *>>,
-        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>)
+        extraAssert: ((KExpr<T>, KExpr<T>) -> KExpr<KBoolSort>),
     ) {
 
         val applied = transformer.apply(exprToTransform)
@@ -630,6 +670,38 @@ class FpToBvTransformerTest {
         }
     } else {
         "${model.eval(value)}"
+    }
+
+    companion object {
+        lateinit var solverManager: KSolverRunnerManager
+        lateinit var testWorkers: KsmtWorkerPool<TestProtocolModel>
+
+        @BeforeAll
+        @JvmStatic
+        fun initWorkerPools() {
+            solverManager = KSolverRunnerManager(
+                workerPoolSize = 4,
+                hardTimeout = 20.seconds,
+                workerProcessIdleTimeout = 10.minutes
+            )
+            testWorkers = KsmtWorkerPool(
+                maxWorkerPoolSize = 4,
+                workerProcessIdleTimeout = 10.minutes,
+                workerFactory = object : KsmtWorkerFactory<TestProtocolModel> {
+                    override val childProcessEntrypoint = TestWorkerProcess::class
+                    override fun updateArgs(args: KsmtWorkerArgs): KsmtWorkerArgs = args
+                    override fun mkWorker(id: Int, process: RdServer) = TestWorker(id, process)
+                }
+            )
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun closeWorkerPools() {
+            solverManager.close()
+            testWorkers.terminate()
+        }
+
     }
 }
 

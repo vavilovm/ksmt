@@ -11,6 +11,7 @@ dependencies {
     testImplementation(project(mapOf("path" to ":ksmt-yices")))
     testImplementation(project(mapOf("path" to ":ksmt-runner")))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-RC")
+    testImplementation(project(mapOf("path" to ":ksmt-test")))
 }
 
 tasks.withType<KotlinCompile> {
