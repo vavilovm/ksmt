@@ -38,9 +38,7 @@ class LocalBenchTest {
 
     class AsArrayDeclChecker(override val ctx: KContext, private val model: KModel) : KTransformer {
         override fun <A : KArraySortBase<R>, R : KSort> transform(expr: KFunctionAsArray<A, R>): KExpr<A> {
-            println("in transform KFunctionAsArray: $expr func=${expr.function} sort=${expr.sort} funcsort=${expr.function.sort}")
             val interp = model.interpretation(expr.function)
-            println("got interp: $interp")
             assertNotNull(interp, "no interpretation for as-array: $expr")
             return expr
         }
@@ -59,16 +57,9 @@ class LocalBenchTest {
             }
             solver.check()
             val model1 = solver.model()
-            println("detach model")
             val model = model1.detach()
-
-
-            println("check as-array decls")
             checkAsArrayDeclsPresentInModel(this, model)
-
-            println("eval results")
             val res = assertionsAll.map { model.eval(it, true) }
-            println("check results")
             res.forEach { assertEquals(trueExpr, it) }
         }
     }
