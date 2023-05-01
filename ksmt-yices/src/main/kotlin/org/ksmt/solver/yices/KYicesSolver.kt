@@ -122,7 +122,7 @@ class KYicesSolver(private val ctx: KContext) : KSolver<KYicesSolverConfiguratio
         }
         val model = nativeContext.model
 
-        return KYicesModel(model, ctx, exprInternalizer, exprConverter)
+        return KYicesModel(model, ctx, yicesCtx, exprInternalizer, exprConverter)
     }
 
     override fun unsatCore(): List<KExpr<KBoolSort>> = yicesTry {
@@ -179,6 +179,7 @@ class KYicesSolver(private val ctx: KContext) : KSolver<KYicesSolverConfiguratio
     override fun close() {
         nativeContext.close()
         yicesCtx.close()
+        timer.cancel()
     }
 
     private inner class StopSearchTask : TimerTask() {
