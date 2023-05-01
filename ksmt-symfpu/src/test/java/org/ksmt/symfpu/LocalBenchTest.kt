@@ -47,7 +47,7 @@ class LocalBenchTest {
 
     @Test
     fun testFromBench() = with(createContext()) {
-        val name = "QF_ABVFP_query.00817.smt2"
+        val name = "QF_ABVFP_filter2_iterated_true-unreach-call.c_185.smt2"
         val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
 
         val assertionsAll = KZ3SMTLibParser(this).parse(content)

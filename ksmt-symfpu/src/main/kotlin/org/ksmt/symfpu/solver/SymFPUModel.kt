@@ -150,8 +150,14 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
 
                     is KArrayLambdaBase<*, *> -> transformArrayLambda(array, targetFpSort, vars)
 
+                    is KFunctionAsArray<*, *> -> {
+                        val funcDecl = ctx.mkFreshFuncDecl("f", targetFpSort.range, targetFpSort.domainSorts)
+                        ctx.mkFunctionAsArray(targetFpSort.cast(), funcDecl)
+                    }
+
                     else -> throw IllegalArgumentException(
-                        "Unsupported array:  class: ${array.javaClass} array.sort ${array.sort}")
+                        "Unsupported array. " +
+                            "targetSort: $targetFpSort class: ${array.javaClass} array.sort ${array.sort}")
                 }.cast()
             }
 
