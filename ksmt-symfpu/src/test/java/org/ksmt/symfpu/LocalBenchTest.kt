@@ -107,7 +107,7 @@ class LocalBenchTest {
             workerProcessIdleTimeout = 10.minutes
         ).use { solverManager ->
 
-            val name = "QF_ABVFP_query.00817.smt2"
+            val name = "QF_ABVFP_filter2_iterated_true-unreach-call.c_185.smt2"
             val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
 
             val ksmtAssertions = KZ3SMTLibParser(ctx).parse(content)

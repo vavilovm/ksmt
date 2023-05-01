@@ -152,6 +152,8 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
 
                     is KFunctionAsArray<*, *> -> {
                         val funcDecl = ctx.mkFreshFuncDecl("f", targetFpSort.range, targetFpSort.domainSorts)
+                        println("\ntransformToFpSort: KFunctionAsArray.")
+                        println("newfuncDecl: $funcDecl, oldFuncDecl: ${array.function}\n")
                         ctx.mkFunctionAsArray(targetFpSort.cast(), funcDecl)
                     }
 
