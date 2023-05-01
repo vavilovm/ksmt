@@ -171,7 +171,10 @@ class SymFPUModel(private val kModel: KModel, val ctx: KContext, val transformer
 
     class AsArrayDeclInterpreter(override val ctx: KContext, private val model: KModel) : KTransformer {
         override fun <A : KArraySortBase<R>, R : KSort> transform(expr: KFunctionAsArray<A, R>): KExpr<A> {
-            model.interpretation(expr.function)
+            model.interpretation(expr.function)?.apply {
+                entries.forEach { it.value.accept(this@AsArrayDeclInterpreter) }
+                default?.accept(this@AsArrayDeclInterpreter)
+            }
             return expr
         }
     }
