@@ -88,7 +88,9 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
             }
         }
     } catch (t: Throwable) {
-        System.err.println("IGNORE $solverName.$name: ${t.message}")
+        System.err.println("THROWS $solverName.$name: ${t.message}")
+        System.err.println("$t")
+        println("THROWS $solverName.$name: ${t.message}")
     }
 
 
