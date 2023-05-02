@@ -1,6 +1,7 @@
 plugins {
     id("org.ksmt.ksmt-base")
     id("me.champeau.jmh") version "0.6.8"
+    id("com.adarshr.test-logger") version "3.2.0"
 }
 
 repositories {
@@ -98,6 +99,7 @@ val prepareTestData by tasks.registering {
     }
 }
 
+
 val testDataRevision = project.stringProperty("testDataRevision") ?: "no-revision"
 val downloadPreparedBenchmarksTestData = downloadPreparedSmtLibBenchmarkTestData(
     downloadPath = downloadedTestData,
@@ -139,4 +141,10 @@ task<TestReport>("mergeTestReports") {
 
 jmh {
     stringProperty("jmhIncludes")?.let { includes.add(it) }
+}
+
+
+
+testlogger {
+    showStandardStreams = true
 }
