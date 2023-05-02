@@ -32,6 +32,8 @@ val benchmarkChunkMaxSize = project.intProperty("benchmarkChunkSize") ?: Int.MAX
 // Use only a [benchmarkChunk] chunk of test data
 val benchmarkChunk = project.intProperty("benchmarkChunk") ?: 0
 
+val benchmarkSolver = project.stringProperty("benchmarkSolver") ?: "None"
+
 // use benchmarks from testData directory instead of downloading
 val usePreparedBenchmarks = project.booleanProperty("usePreparedBenchmarks") ?: true
 
@@ -112,6 +114,7 @@ tasks.withType<Test> {
         dependsOn.add(prepareTestData)
         environment("benchmarkChunkMaxSize", benchmarkChunkMaxSize)
         environment("benchmarkChunk", benchmarkChunk)
+        environment("solver", benchmarkSolver)
         testLogging {
             showStandardStreams = true
         }
@@ -136,6 +139,15 @@ task<TestReport>("mergeTestReports") {
         destinationDir = rootDir.resolve(mergePrefix)
         val reports = rootDir.resolve("reports").listFiles { f: File -> f.name.startsWith(mergePrefix) }
         reportOn(*reports)
+    }
+}
+
+task("mergeCSVFiles") {
+    val files = rootDir.resolve("reports").listFiles { f -> f.name.startsWith("bench-") && f.name.endsWith(".csv") }
+    val merged = rootDir.resolve("reports").resolve("merged.csv")
+    if (files != null) {
+        merged.writeText("")
+        files.forEach { merged.appendText(it.readText()) }
     }
 }
 
