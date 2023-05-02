@@ -158,5 +158,4 @@ jobs:
           path: ksmt-test/data.csv
 
 
-description: runs symfpu benchmarks
 
