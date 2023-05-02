@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ format('bench-{0}-{1}', matrix.test) }}
+          name: ${{ format('bench-{0}', matrix.test) }}
           path: ksmt-test/data.csv
 
 

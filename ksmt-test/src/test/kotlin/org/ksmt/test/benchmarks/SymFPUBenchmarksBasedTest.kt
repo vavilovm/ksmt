@@ -87,17 +87,21 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     private fun measureKsmtAssertionTime(
         name: String, samplePath: Path, solverName: String, solverConstructor: (ctx: KContext) -> KSolver<*>,
     ) = try {
+        println("go $solverName.$name")
         with(KContext()) {
             val assertions: List<KExpr<KBoolSort>> = KZ3SMTLibParser(this).parse(samplePath)
             solverConstructor(this).use { solver ->
                 // force solver initialization
                 solver.push()
 
+                println("assertAndCheck")
                 val assertAndCheck = measureNanoTime {
                     assertions.forEach { solver.assert(it) }
                     solver.check(TIMEOUT)
                 }
+                println("save")
                 saveData(name, solverName, "$assertAndCheck")
+                println("done")
             }
         }
     } catch (t: Throwable) {
@@ -112,26 +116,20 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
 
         @JvmStatic
-        fun QF_FPTestData(): List<BenchmarkTestArguments> {
-            return testData.filter {
-                it.name.startsWith("QF_FP")
-            }.ensureNotEmpty()
-        }
+        fun QF_FPTestData() = testData.filter {
+            it.name.startsWith("QF_FP")
+        }.ensureNotEmpty().also { println("QF_FPTestData: ${it.size}")} // 40k
 
         @JvmStatic
-        fun QF_BVFPTestData(): List<BenchmarkTestArguments> {
-            return testData.filter {
-                it.name.startsWith("QF_BVFP")
-            }.ensureNotEmpty()
-        }
+        fun QF_BVFPTestData() = testData.filter {
+            it.name.startsWith("QF_BVFP")
+        }.ensureNotEmpty().also { println("QF_BVFPTestData: ${it.size}")} //14k
 
 
         @JvmStatic
-        fun QF_ABVFPTestData(): List<BenchmarkTestArguments> {
-            return testData.filter {
-                it.name.startsWith("QF_ABVFP")
-            }.ensureNotEmpty()
-        }
+        fun QF_ABVFPTestData() = testData.filter {
+            it.name.startsWith("QF_ABVFP")
+        }.ensureNotEmpty().also { println("QF_ABVFPTestData: ${it.size}")} // 14k
 
 
         private val data = ConcurrentHashMap<String, ConcurrentHashMap<String, String>>()
