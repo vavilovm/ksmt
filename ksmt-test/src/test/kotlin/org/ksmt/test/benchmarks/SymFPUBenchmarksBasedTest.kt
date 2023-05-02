@@ -40,7 +40,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("QF_ABVFPTestData")
-    fun testABVFP(name: String, samplePath: Path) = testAll(name, samplePath)
+    fun testQF_ABVFP(name: String, samplePath: Path) = testAll(name, samplePath)
 
 
     private fun testAll(name: String, samplePath: Path) {
