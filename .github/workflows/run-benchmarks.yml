@@ -14,7 +14,7 @@ on:
         description: Maximal size of a single test data chunk
         required: true
         type: number
-        default: 1000
+        default: 1400
       testDataSize:
         description: Size of test dataset
         required: true
@@ -144,7 +144,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: |
-            :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest.testSolver" 
+            :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest" 
             --no-daemon
             --continue
             -PrunBenchmarksBasedTests=true

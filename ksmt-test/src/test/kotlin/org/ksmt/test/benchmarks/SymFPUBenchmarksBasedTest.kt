@@ -6,6 +6,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.ksmt.KContext
+import kotlin.io.path.Path
 import org.ksmt.expr.KExpr
 import org.ksmt.solver.KSolver
 import org.ksmt.solver.KSolverStatus
@@ -66,9 +67,8 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     }
 
 
-//./gradlew :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest.testSolverZ3Transformed"
+//./gradlew :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest" --no-daemon --continue -PrunBenchmarksBasedTests=true -Psolver=Z3
 // --no-daemon --continue -PrunBenchmarksBasedTests=true -Psolver=Z3
-
 
     @OptIn(ExperimentalTime::class)
     private fun measureKsmtAssertionTime(
@@ -108,7 +108,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     ) {
         val data = "$sampleName | $theory | $solverName | $assertTime | $checkTime | $totalTime | $status"
         println(data)
-        Path.of("data.csv").appendText("$data\n")
+        Path("data.csv").appendText("$data\n")
     }
 
 
@@ -123,7 +123,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         @BeforeAll
         @JvmStatic
         fun createData() {
-            Path.of("data.csv").createFile()
+            Path("data.csv").createFile()
         }
     }
 }
