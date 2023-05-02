@@ -148,7 +148,7 @@ jobs:
             --no-daemon
             --continue
             -PrunBenchmarksBasedTests=true
-            -Psolver=${{ matrix.test) }}
+            -Psolver=${{ matrix.test }}
 
       - name: Upload ksmt test reports
         uses: actions/upload-artifact@v3
