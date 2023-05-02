@@ -1,4 +1,4 @@
-name: Build and run long ksmt tests
+name: Build and run benchmark tests
 
 on:
   workflow_dispatch:
