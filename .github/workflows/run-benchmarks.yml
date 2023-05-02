@@ -77,7 +77,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        test: SymFPUBenchmarksBasedTest.testAllSolvers
+        test: [ SymFPUBenchmarksBasedTest.testAllSolvers]
         chunk: ${{ fromJSON(needs.setup.outputs.matrix-chunks) }}
 
     name: Run ${{ matrix.test }}[${{ matrix.chunk }}] on ${{ matrix.os }}
@@ -144,3 +144,5 @@ jobs:
         with:
           name: ${{ format('bench-{0}-{1}', matrix.test, matrix.chunk) }}
           path: ksmt-test/data.csv
+
+
