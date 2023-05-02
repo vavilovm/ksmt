@@ -3,12 +3,6 @@ name: Build and run benchmark tests
 on:
   workflow_dispatch:
     inputs:
-      tests:
-        description: >
-          Comma separated list of tests to run from ksmt-test module. 
-          For example: Z3BenchmarksBasedTest.testConverter, Z3BenchmarksBasedTest.testSolver
-        required: true
-        type: string
       chunkSize:
         description: Maximal size of a single test data chunk
         required: true
@@ -27,7 +21,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      matrix-tests: ${{ steps.set-tests.outputs.tests }}
+      matrix-tests: ["SymFPUBenchmarksBasedTest.testAllSolvers"]
       matrix-chunks: ${{ steps.set-chunks.outputs.chunks }}
     steps:
       - id: set-chunks
@@ -42,31 +36,11 @@ jobs:
           done
           CHUNKS+="]"
           echo "chunks=$CHUNKS" >> $GITHUB_OUTPUT
-      - id: set-tests
-        name: >
-          Convert comma separated list to JSON array: 'a, b' -> '["a","b"]'
-        run: |
-          STR="${{ inputs.tests }}"
-          IFS=',' read -r -a array <<< "$STR"
-          ARRAY_SIZE="${#array[@]}"
-          TEST_ARRAY="["
-          if test $ARRAY_SIZE -gt 0; then
-            TRIM="$(echo -e "${array[0]}" | tr -d '[:space:]')"
-            TEST_ARRAY+="\"$TRIM\""
-            for (( i=1; i<$ARRAY_SIZE; i+=1 )); do
-              TRIM="$(echo -e "${array[i]}" | tr -d '[:space:]')"
-              TEST_ARRAY+=",\"$TRIM\""
-            done
-          fi
-          TEST_ARRAY+="]"
-          echo "tests=$TEST_ARRAY" >> $GITHUB_OUTPUT
+  
 
   prepare_test_data:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -98,12 +72,12 @@ jobs:
             -PtestDataRevision=${{ env.TEST_DATA_REVISION }}
 
   run_tests:
-    needs: [setup, prepare_test_data]
+    needs: [ setup, prepare_test_data ]
     continue-on-error: true
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        test: ${{ fromJSON(needs.setup.outputs.matrix-tests) }}
+        test: "SymFPUBenchmarksBasedTest.testAllSolvers"
         chunk: ${{ fromJSON(needs.setup.outputs.matrix-chunks) }}
 
     name: Run ${{ matrix.test }}[${{ matrix.chunk }}] on ${{ matrix.os }}
