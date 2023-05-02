@@ -2,41 +2,12 @@ name: Build and run benchmark tests
 
 on:
   workflow_dispatch:
-    inputs:
-      chunkSize:
-        description: Maximal size of a single test data chunk
-        required: true
-        type: number
-        default: 10000
-      testDataSize:
-        description: Size of test dataset
-        required: true
-        type: number
-        default: 170000
+
 
 env:
   TEST_DATA_REVISION: 0.2.1
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix-chunks: ${{ steps.set-chunks.outputs.chunks }}
-    steps:
-      - id: set-chunks
-        name: Calculate chunk indices based on size of the dataset
-        run: |
-          LIMIT="${{ inputs.testDataSize }}"
-          SIZE="${{ inputs.chunkSize }}"
-          CHUNKS_AMOUNT=$((LIMIT / SIZE - 1))
-          CHUNKS="[0"
-          for (( i=1; i<=$CHUNKS_AMOUNT; i+=1 )); do
-            CHUNKS+=",$i";
-          done
-          CHUNKS+="]"
-          echo "chunks=$CHUNKS" >> $GITHUB_OUTPUT
-  
-
   prepare_test_data:
 
     runs-on: ubuntu-latest
@@ -76,10 +47,9 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        test: [ SymFPUBenchmarksBasedTest.testAllSolvers ]
-        chunk: ${{ fromJSON(needs.setup.outputs.matrix-chunks) }}
+        test: [ SymFPUBenchmarksBasedTest.testQF_ABVFP, SymFPUBenchmarksBasedTest.testQF_BVFP, SymFPUBenchmarksBasedTest.testQF_FP ]
 
-    name: Run ${{ matrix.test }}[${{ matrix.chunk }}] on ${{ matrix.os }}
+    name: Run ${{ matrix.test }} on ${{ matrix.os }}
 
     runs-on: ${{ matrix.os }}
 
@@ -117,10 +87,9 @@ jobs:
             --no-daemon
             -PtestDataRevision=${{ env.TEST_DATA_REVISION }}
 
-      # We don't want to run basic KSMT tests on each chunk
       - name: Build project
         uses: gradle/gradle-build-action@v2
-        if: ${{ matrix.chunk == '0' }}
+        if: always()
         with:
           arguments: |
             build
@@ -134,14 +103,12 @@ jobs:
             --no-daemon
             --continue
             -PrunBenchmarksBasedTests=true
-            -PbenchmarkChunkSize=${{ inputs.chunkSize }}
-            -PbenchmarkChunk=${{ matrix.chunk }}
 
       - name: Upload ksmt test reports
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ format('bench-{0}-{1}', matrix.test, matrix.chunk) }}
+          name: ${{ format('bench-{0}-{1}', matrix.test) }}
           path: ksmt-test/data.csv
 
 

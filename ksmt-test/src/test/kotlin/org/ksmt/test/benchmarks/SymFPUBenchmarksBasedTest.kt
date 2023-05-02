@@ -29,8 +29,21 @@ import kotlin.time.Duration.Companion.seconds
 class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("symfpuTestData")
-    fun testAllSolvers(name: String, samplePath: Path) {
+    @MethodSource("QF_FPTestData")
+    fun testQF_FP(name: String, samplePath: Path) = testAll(name, samplePath)
+
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("QF_BVFPTestData")
+    fun testQF_BVFP(name: String, samplePath: Path) = testAll(name, samplePath)
+
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("QF_ABVFPTestData")
+    fun testABVFP(name: String, samplePath: Path) = testAll(name, samplePath)
+
+
+    private fun testAll(name: String, samplePath: Path) {
         testSolverZ3(name, samplePath)
         testSolverZ3Transformed(name, samplePath)
 
@@ -67,7 +80,6 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     )
 
 
-
 //./gradlew :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest.testSolverZ3Transformed"
 // --no-daemon --continue -PrunBenchmarksBasedTests=true
 
@@ -100,9 +112,24 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
 
         @JvmStatic
-        fun symfpuTestData(): List<BenchmarkTestArguments> {
+        fun QF_FPTestData(): List<BenchmarkTestArguments> {
             return testData.filter {
-                "FP" in it.name
+                it.name.startsWith("QF_FP")
+            }.ensureNotEmpty()
+        }
+
+        @JvmStatic
+        fun QF_BVFPTestData(): List<BenchmarkTestArguments> {
+            return testData.filter {
+                it.name.startsWith("QF_BVFP")
+            }.ensureNotEmpty()
+        }
+
+
+        @JvmStatic
+        fun QF_ABVFPTestData(): List<BenchmarkTestArguments> {
+            return testData.filter {
+                it.name.startsWith("QF_ABVFP")
             }.ensureNotEmpty()
         }
 

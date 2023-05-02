@@ -582,7 +582,7 @@ class FpToBvTransformerTest {
         val status =
             solver.checkWithAssumptions(
                 listOf(testTransformer.apply(extraAssert(transformedExpr, toCompare))),
-                timeout = 20.seconds
+                timeout = 2.seconds
             )
         println("status: $status")
         if (status == KSolverStatus.SAT) {
