@@ -67,6 +67,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     )
 
 
+
 //./gradlew :ksmt-test:test --tests "org.ksmt.test.benchmarks.SymFPUBenchmarksBasedTest.testSolverZ3Transformed"
 // --no-daemon --continue -PrunBenchmarksBasedTests=true
 
@@ -115,6 +116,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         @AfterAll
         @JvmStatic
         fun saveData() {
+            println("save data")
             val headerRow = data.values.firstOrNull()?.keys?.sorted() ?: return
             val columns = listOf("Sample name") + headerRow
             val orderedData = listOf(columns) + data.map { (name, sampleData) ->
