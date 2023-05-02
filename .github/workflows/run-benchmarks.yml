@@ -42,7 +42,7 @@ jobs:
             -PtestDataRevision=${{ env.TEST_DATA_REVISION }}
 
   run_tests:
-    needs: [ setup, prepare_test_data ]
+    needs: [ prepare_test_data ]
     continue-on-error: true
     strategy:
       matrix:
