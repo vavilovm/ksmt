@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.ksmt.ksmt-base")
+    id("com.adarshr.test-logger") version "3.2.0"
 }
 
 dependencies {
@@ -31,3 +32,7 @@ repositories {
     mavenCentral()
 }
 
+
+testlogger {
+    showStandardStreams = true
+}
