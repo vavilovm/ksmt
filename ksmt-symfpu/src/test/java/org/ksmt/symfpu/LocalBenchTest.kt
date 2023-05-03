@@ -7,7 +7,6 @@ import org.ksmt.solver.yices.KYicesSolverConfiguration
 import org.ksmt.solver.z3.KZ3SMTLibParser
 import org.ksmt.solver.z3.KZ3Solver
 import org.ksmt.solver.z3.KZ3SolverConfiguration
-import org.ksmt.symfpu.operations.createContext
 import org.ksmt.symfpu.solver.SymfpuSolver
 import kotlin.time.Duration.Companion.seconds
 
@@ -22,7 +21,7 @@ class LocalBenchTest {
     private val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
 
     @Test
-    fun testFromBench() = with(createContext()) {
+    fun testFromBench() = with(KContext()) {
         val assertionsAll = KZ3SMTLibParser(this).parse(content)
 
         Solver(this).use { solver ->

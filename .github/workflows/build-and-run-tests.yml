@@ -30,12 +30,12 @@ jobs:
           distribution: 'zulu'
           cache: gradle
 
-      - name: Build and run symfpu tests on macOS
+      - name: Build and run symfpu tests
         uses: gradle/gradle-build-action@v2
         if: always()
         with:
           arguments: |
-            :ksmt-symfpu:build
+            :ksmt-symfpu:test
              --no-daemon
              --continue
              -PrunBenchmarksBasedTests=false
