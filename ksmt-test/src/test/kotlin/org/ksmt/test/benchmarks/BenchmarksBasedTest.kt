@@ -67,7 +67,7 @@ abstract class BenchmarksBasedTest {
     fun testConverter(
         name: String,
         samplePath: Path,
-        mkKsmtAssertions: suspend TestRunner.(List<KExpr<KBoolSort>>) -> List<KExpr<KBoolSort>>
+        mkKsmtAssertions: suspend TestRunner.(List<KExpr<KBoolSort>>) -> List<KExpr<KBoolSort>>,
     ) = handleIgnoredTests("testConverter[$name]") {
         ignoreNoTestDataStub(name)
         val ctx = KContext()
@@ -93,7 +93,7 @@ abstract class BenchmarksBasedTest {
     fun <C : KSolverConfiguration> testModelConversion(
         name: String,
         samplePath: Path,
-        solverType: KClass<out KSolver<C>>
+        solverType: KClass<out KSolver<C>>,
     ) = testModelConversion(name, samplePath) { ctx ->
         solverManager.createSolver(ctx, solverType)
     }
@@ -101,7 +101,7 @@ abstract class BenchmarksBasedTest {
     fun <C : KSolverConfiguration> testModelConversion(
         name: String,
         samplePath: Path,
-        solverProvider: (KContext) -> KAsyncSolver<C>
+        solverProvider: (KContext) -> KAsyncSolver<C>,
     ) = handleIgnoredTests("testModelConversion[$name]") {
         ignoreNoTestDataStub(name)
         val ctx = KContext()
@@ -161,7 +161,7 @@ abstract class BenchmarksBasedTest {
     fun <C : KSolverConfiguration> testSolver(
         name: String,
         samplePath: Path,
-        solverType: KClass<out KSolver<C>>
+        solverType: KClass<out KSolver<C>>,
     ) = testSolver(name, samplePath) { ctx ->
         solverManager.createSolver(ctx, solverType)
     }
@@ -169,7 +169,7 @@ abstract class BenchmarksBasedTest {
     fun <C : KSolverConfiguration> testSolver(
         name: String,
         samplePath: Path,
-        solverProvider: (KContext) -> KAsyncSolver<C>
+        solverProvider: (KContext) -> KAsyncSolver<C>,
     ) = handleIgnoredTests("testSolver[$name]") {
         ignoreNoTestDataStub(name)
         val ctx = KContext()
@@ -215,7 +215,7 @@ abstract class BenchmarksBasedTest {
 
     internal fun KsmtWorkerPool<TestProtocolModel>.withWorker(
         ctx: KContext,
-        body: suspend (TestRunner) -> Unit
+        body: suspend (TestRunner) -> Unit,
     ) = runBlocking {
         val worker = try {
             getOrCreateFreeWorker()
@@ -274,7 +274,7 @@ abstract class BenchmarksBasedTest {
         override fun <T : KFpSort> transform(expr: KFpToBvExpr<T>): KExpr<KBvSort> =
             super.transform(expr).also { checkFpNaNOrInf(expr.value) }
 
-        override fun <T : KFpSort> transform(expr: KFpToRealExpr<T>): KExpr<KRealSort>  =
+        override fun <T : KFpSort> transform(expr: KFpToRealExpr<T>): KExpr<KRealSort> =
             super.transform(expr).also { checkFpNaNOrInf(expr.value) }
 
         override fun <T : KFpSort> transform(expr: KFpMinExpr<T>): KExpr<T> =
@@ -295,7 +295,7 @@ abstract class BenchmarksBasedTest {
             }
         }
 
-        private fun <T: KFpSort> checkFpNaNOrInf(value: KExpr<T>) = with(ctx) {
+        private fun <T : KFpSort> checkFpNaNOrInf(value: KExpr<T>) = with(ctx) {
             val underspecifiedValues = setOf(
                 mkFpNaN(value.sort),
                 mkFpInf(signBit = true, value.sort),
@@ -336,21 +336,30 @@ abstract class BenchmarksBasedTest {
             ?.let { Paths.get(it) }
             ?: error("No test data")
 
-        private fun prepareTestData(): List<BenchmarkTestArguments> {
+        private fun prepareTestData(filterCondition: (String) -> Boolean = { true }): List<BenchmarkTestArguments> {
             val testDataLocation = testDataLocation()
             return testDataLocation
                 .listDirectoryEntries("*.smt2")
+                .asSequence()
+                .filter {
+                    val name = it.relativeTo(testDataLocation).toString()
+                    filterCondition(name)
+                }
                 .sorted()
                 .drop(testDataChunk * testDataChunkSize)
                 .take(testDataChunkSize)
                 .map { BenchmarkTestArguments(it.relativeTo(testDataLocation).toString(), it) }
+                .toList()
                 .skipBadTestCases()
                 .ensureNotEmpty()
+
         }
 
         val testData by lazy {
             prepareTestData()
         }
+
+        fun testData(filterCondition: (String) -> Boolean) = prepareTestData(filterCondition)
 
         /**
          * Parametrized tests require at least one argument.
@@ -409,7 +418,7 @@ abstract class BenchmarksBasedTest {
 
     data class BenchmarkTestArguments(
         val name: String,
-        val samplePath: Path
+        val samplePath: Path,
     ) : Arguments {
         override fun get() = arrayOf(name, samplePath)
     }

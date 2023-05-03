@@ -65,7 +65,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     private fun measureKsmtAssertionTime(
         sampleName: String, samplePath: Path, solverName: String,
         solverConstructor: (ctx: KContext) -> KSolver<*>,
-    ) = repeat(5) {
+    ) {
         try {
             with(KContext()) {
                 val assertions: List<KExpr<KBoolSort>> = KZ3SMTLibParser(this).parse(samplePath)
@@ -100,12 +100,14 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
 
     companion object {
-        private val TIMEOUT = 5.seconds
+        private val TIMEOUT = 1.seconds
 
         @JvmStatic
-        fun testData() = testData.filter {
-            it.name.startsWith("QF_FP_") || it.name.startsWith("QF_BVFP") || it.name.startsWith("QF_ABVFP")
-        }.ensureNotEmpty().also { println("QF_FPTestData: ${it.size}") } // 68907
+        fun testData() = testData {
+            it.startsWith("QF_FP_") || it.startsWith("QF_BVFP") || it.startsWith("QF_ABVFP")
+        }.ensureNotEmpty().also { println("current chunk: ${it.size}") }.let {
+            it + it + it + it + it // 5 repeats for each test
+        } // 68907 total
 
         @BeforeAll
         @JvmStatic

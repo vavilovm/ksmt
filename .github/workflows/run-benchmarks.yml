@@ -14,7 +14,7 @@ on:
         description: Maximal size of a single test data chunk
         required: true
         type: number
-        default: 1400
+        default: 500
       testDataSize:
         description: Size of test dataset
         required: true
@@ -148,13 +148,15 @@ jobs:
             --no-daemon
             --continue
             -PrunBenchmarksBasedTests=true
-            -PbenchmarkSolver=${{ matrix.test }}
+            -PbenchmarkSolver=${{ matrix.solver }}
+            -PbenchmarkChunkSize=${{ inputs.chunkSize }}
+            -PbenchmarkChunk=${{ matrix.chunk }}
 
       - name: Upload ksmt test reports
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ format('bench-{0}-{1}', matrix.test, matrix.chunk) }}
+          name: ${{ format('bench-{0}-{1}', matrix.solver, matrix.chunk) }}
           path: ksmt-test/data.csv
 
   merge_test_report:
