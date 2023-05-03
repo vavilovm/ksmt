@@ -143,10 +143,11 @@ task<TestReport>("mergeTestReports") {
 }
 
 task("mergeCSVFiles") {
-    inputs.files(fileTree("reports") { include("bench-*.csv") })
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.file("report.csv")
+    inputs.files(fileTree(rootDir.resolve("reports")))
+    outputs.file(rootDir.resolve("report.csv"))
 
+    println("reports path: ${rootDir.resolve("reports")}")
+    println("output path: ${rootDir.resolve("report.csv")}")
     doLast {
         val files = rootDir.resolve("reports").listFiles { f -> f.name.startsWith("bench-") && f.name.endsWith(".csv") }
         val merged = rootDir.resolve("report.csv")

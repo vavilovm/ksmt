@@ -156,7 +156,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ format('bench-{0}-{1}', matrix.solver, matrix.chunk) }}
+          name: ${{ format('bench-{0}-{1}.csv', matrix.solver, matrix.chunk) }}
           path: ksmt-test/data.csv
 
   merge_test_report:
@@ -173,13 +173,20 @@ jobs:
         with:
           path: reports
 
+      - name: Display structure of downloaded files [reports]
+        run: ls -R
+        working-directory: reports
+
+      - name: Display structure of downloaded files[root]
+        run: ls -R
+
       - name: Set up JDK 1.8
         uses: actions/setup-java@v3
         with:
           java-version: 8
           distribution: 'zulu'
 
-      - name: Merge test report [ubuntu-latest]
+      - name: Merge test report
         uses: gradle/gradle-build-action@v2
         with:
           arguments: |
