@@ -144,7 +144,7 @@ task<TestReport>("mergeTestReports") {
 
 task("mergeCSVFiles") {
     val files = rootDir.resolve("reports").listFiles { f -> f.name.startsWith("bench-") && f.name.endsWith(".csv") }
-    val merged = rootDir.resolve("reports").resolve("merged.csv")
+    val merged = rootDir.resolve("report.csv")
     if (files != null) {
         merged.writeText("")
         files.forEach { merged.appendText(it.readText()) }
