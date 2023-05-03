@@ -149,11 +149,16 @@ task("mergeCSVFiles") {
     println("reports path: ${rootDir.resolve("reports")}")
     println("output path: ${rootDir.resolve("report.csv")}")
     doLast {
-        val files = rootDir.resolve("reports").listFiles { f -> f.name.startsWith("bench-") && f.name.endsWith(".csv") }
         val merged = rootDir.resolve("report.csv")
-        if (files != null) {
-            merged.writeText("")
-            files.forEach { merged.appendText(it.readText()) }
+        merged.writeText("")
+        println("files:")
+
+        rootDir.resolve("reports").walkTopDown().forEach { f ->
+            println("file:  ${f.name}")
+
+            if (f.name == "data.csv") {
+                merged.appendText(f.readText())
+            }
         }
     }
 }

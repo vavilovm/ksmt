@@ -156,7 +156,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: ${{ format('bench-{0}-{1}.csv', matrix.solver, matrix.chunk) }}
+          name: ${{ format('bench-{0}-{1}', matrix.solver, matrix.chunk) }}
           path: ksmt-test/data.csv
 
   merge_test_report:
