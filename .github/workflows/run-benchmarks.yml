@@ -189,7 +189,7 @@ jobs:
       - name: Upload merged test reports
         uses: actions/upload-artifact@v3
         with:
-          name: reports/merged.csv
+          name: all_tests_report.csv
           path: report.csv
 
 

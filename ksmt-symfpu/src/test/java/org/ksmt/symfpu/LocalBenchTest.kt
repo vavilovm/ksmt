@@ -8,9 +8,6 @@ import org.ksmt.solver.yices.KYicesSolver
 import org.ksmt.solver.yices.KYicesSolverConfiguration
 import org.ksmt.solver.yices.KYicesSolverUniversalConfiguration
 import org.ksmt.solver.z3.KZ3SMTLibParser
-import org.ksmt.solver.z3.KZ3Solver
-import org.ksmt.solver.z3.KZ3SolverConfiguration
-import org.ksmt.solver.z3.KZ3SolverUniversalConfiguration
 import org.ksmt.symfpu.operations.createContext
 import org.ksmt.symfpu.solver.SymfpuSolver
 import kotlin.time.Duration.Companion.seconds
@@ -23,7 +20,7 @@ class SymfpuYicesSolver(ctx: KContext) : SymfpuSolver<KYicesSolverConfiguration>
 //typealias UniversalConfig = KZ3SolverUniversalConfiguration
 
 class LocalBenchTest {
-    private val name = "QF_FP_rem-has-no-other-solution-100.smt2"
+    private val name = "QF_ABVFP_Newlib-BadKrozingenChallenge-4ByteResolution.smt2"
     private val content = LocalBenchTest::class.java.getResource("/$name")?.readText() ?: error("no file $name")
 
     @Test
