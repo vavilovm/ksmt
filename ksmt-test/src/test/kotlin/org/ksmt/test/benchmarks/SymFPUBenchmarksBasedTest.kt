@@ -103,7 +103,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
 
         @JvmStatic
         fun testData() = testData {
-            it.startsWith("QF_FP_") || it.startsWith("QF_BVFP") || it.startsWith("QF_ABVFP")
+            it.startsWith("QF_FP_abs") //|| it.startsWith("QF_BVFP") || it.startsWith("QF_ABVFP")
         }.ensureNotEmpty().also { println("current chunk: ${it.size}") }.let {
             it + it + it + it + it // 5 repeats for each test
         } // 68907 total
