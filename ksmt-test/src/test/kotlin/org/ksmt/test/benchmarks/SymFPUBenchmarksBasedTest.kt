@@ -93,7 +93,7 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         checkTime: Long, totalTime: Long,
         status: KSolverStatus,
     ) {
-        val data = "$sampleName | $theory | $solverName | $assertTime | $checkTime | $totalTime | $status"
+        val data = "$sampleName,$theory,$solverName,$assertTime,$checkTime,$totalTime,$status"
         Path("data.csv").appendText("$data\n")
     }
 
