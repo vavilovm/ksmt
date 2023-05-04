@@ -71,8 +71,6 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
             with(KContext()) {
                 val assertions: List<KExpr<KBoolSort>> = KZ3SMTLibParser(this).parse(samplePath)
                 solverConstructor(this).use { solver ->
-                    // force solver initialization
-                    solver.push()
                     val assertTime = measureNanoTime {
                         assertions.forEach { solver.assert(it) }
                     }
