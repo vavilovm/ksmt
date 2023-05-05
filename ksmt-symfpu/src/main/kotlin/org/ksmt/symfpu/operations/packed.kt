@@ -42,9 +42,8 @@ fun <Fp : KFpSort> KContext.unpack(
     val significandWithLeadingZero = mkBvConcatExpr(bvZero(), packedSignificand)
     val significandWithLeadingOne = mkBvConcatExpr(bvOne(), packedSignificand)
 
-    val packedFp = UnpackedFp.PackedFp.Exists(sign, packedExponent, packedSignificand)
-    val ufNormal = UnpackedFp(this, sort, sign, exponent, significandWithLeadingOne, packedFp)
-    val ufSubnormalBase = UnpackedFp(this, sort, sign, minNormalExponent(sort), significandWithLeadingZero, packedFp)
+    val ufNormal = UnpackedFp(this, sort, sign, exponent, significandWithLeadingOne)
+    val ufSubnormalBase = UnpackedFp(this, sort, sign, minNormalExponent(sort), significandWithLeadingZero)
 
     // Analyse
     val zeroExponent = isAllZeros(packedExponent)
@@ -70,9 +69,6 @@ fun <Fp : KFpSort> KContext.unpack(
 }
 
 fun <Fp : KFpSort> KContext.packToBv(uf: UnpackedFp<Fp>): KExpr<KBvSort> {
-    uf.packedBv.toIEEE()?.let { return it }
-
-
     // Sign
     val packedSign = uf.signBv()
     // Exponent

@@ -136,9 +136,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
         transformExprAfterTransformed(expr, expr.lhs, expr.rhs) { l, r ->
             if (l is UnpackedFp<*> && r is UnpackedFp<*>) {
                 val flags = mkAnd(l.isNaN eq r.isNaN, l.isInf eq r.isInf, l.isZero eq r.isZero)
-                if (l.packedBv is UnpackedFp.PackedFp.Exists && r.packedBv is UnpackedFp.PackedFp.Exists)
-                    flags and (l.packedBv eq r.packedBv)
-                else mkAnd(
+                mkAnd(
                     flags,
                     l.sign eq r.sign,
                     l.unbiasedExponent eq r.unbiasedExponent,
@@ -461,7 +459,7 @@ class FpToBvTransformer(ctx: KContext) : KNonRecursiveTransformer(ctx) {
     override fun <T : KFpSort> transform(expr: KFpToIEEEBvExpr<T>) =
         transformExprAfterTransformed(expr, expr.value) { value ->
             (value as UnpackedFp<T>).let {
-                it.packedBv.toIEEE() ?: ctx.packToBv(it)
+                ctx.packToBv(it)
             }
         }
 

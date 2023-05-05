@@ -43,11 +43,9 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
     }
 
     private val mapSolvers = mapOf(
-        "SymfpuZ3" to ::SymfpuZ3Solver,
-        "SymfpuYices" to ::SymfpuYicesSolver,
-        "SymfpuBitwuzla" to ::SymfpuBitwuzlaSolver,
-        "Z3" to ::KZ3Solver,
-        "Bitwuzla" to ::KBitwuzlaSolver,
+        "SymfpuZ3NoOpt" to ::SymfpuZ3Solver,
+        "SymfpuYicesNoOpt" to ::SymfpuYicesSolver,
+        "SymfpuBitwuzlaNoOpt" to ::SymfpuBitwuzlaSolver,
     )
 
     private fun getTheory(name: String) = when {
