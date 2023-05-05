@@ -1,7 +1,6 @@
 plugins {
     id("org.ksmt.ksmt-base")
     id("me.champeau.jmh") version "0.6.8"
-    id("com.adarshr.test-logger") version "3.2.0"
 }
 
 repositories {
@@ -115,9 +114,6 @@ tasks.withType<Test> {
         environment("benchmarkChunkMaxSize", benchmarkChunkMaxSize)
         environment("benchmarkChunk", benchmarkChunk)
         environment("solver", benchmarkSolver)
-        testLogging {
-            showStandardStreams = true
-        }
     } else {
         exclude("org/ksmt/test/benchmarks/**")
 
@@ -150,7 +146,7 @@ task("mergeCSVFiles") {
     println("output path: ${rootDir.resolve("report.csv")}")
     doLast {
         val merged = rootDir.resolve("report.csv")
-        merged.writeText("")
+        merged.writeText("sample name,theory,solver,assert time,check time,time,status\n")
         println("files:")
 
         rootDir.resolve("reports").walkTopDown().forEach { f ->
@@ -167,8 +163,3 @@ jmh {
     stringProperty("jmhIncludes")?.let { includes.add(it) }
 }
 
-
-
-testlogger {
-    showStandardStreams = true
-}

@@ -23,7 +23,6 @@ import kotlin.io.path.Path
 import kotlin.io.path.appendText
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
-import kotlin.io.path.writeText
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -112,7 +111,6 @@ class SymFPUBenchmarksBasedTest : BenchmarksBasedTest() {
         fun createData() {
             Path("data.csv").apply {
                 if (!exists()) createFile()
-                writeText("sample name,theory,solver,assert time,check time,time,status\n")
             }
         }
     }
